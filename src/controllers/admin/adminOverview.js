@@ -24,15 +24,40 @@ export function initOverview(visits) {
         isFilterSetup = true;
     }
 
-    // Force Auto-Close Hook
+    // SMART 7:00 PM AUTO-CLOSE HOOK
     const btnForceClose = document.getElementById('btn-force-close');
     if (btnForceClose) {
         btnForceClose.onclick = async () => {
-            if(confirm("Are you sure you want to force sign out all active users? This is usually done at 7:00 PM closing.")) {
+            // Find all visitors currently active (missing timeOut or marked active)
+            const activeVisits = currentVisits.filter(v => v.status === 'active' || !v.timeOut);
+            
+            if (activeVisits.length === 0) {
+                return alert("There are no active sessions to close!");
+            }
+
+            if (confirm(`Are you sure you want to force-close ${activeVisits.length} active session(s)?\n\nThey will be stamped with a sign-out time of exactly 7:00 PM on the day they checked in.`)) {
                 btnForceClose.disabled = true;
-                btnForceClose.innerText = "Closing...";
-                await DB.forceCheckoutAllActive();
-                loadAdminDashboard(); // Refresh all data cleanly
+                btnForceClose.innerHTML = '<i class="bi bi-hourglass-split"></i> Closing...';
+
+                for (const visit of activeVisits) {
+                    // Extract the check-in time (handling Firebase Timestamps)
+                    const checkInTime = visit.timeIn && typeof visit.timeIn.toDate === 'function' 
+                        ? visit.timeIn.toDate() 
+                        : new Date(visit.timeIn);
+                    
+                    // Create the strict 7:00 PM timestamp for the specific day they visited
+                    const forcedOutTime = new Date(checkInTime);
+                    forcedOutTime.setHours(19, 0, 0, 0);
+
+                    // Update the specific document in the database
+                    await DB.updateVisit(visit.id, {
+                        timeOut: forcedOutTime,
+                        status: 'completed'
+                    });
+                }
+                
+                // Refresh all data cleanly on the dashboard
+                loadAdminDashboard(); 
             }
         }
     }
@@ -122,7 +147,7 @@ function renderOverview(period = 'today', customStart = null, customEnd = null) 
     document.getElementById('stat-total-today').innerText = filteredVisits.length;
 
     const collegeCounts = {};
-    const activityCounts = {}; // New Activity Tracker
+    const activityCounts = {}; 
     const hourlyCounts = { '8AM':0, '10AM':0, '12PM':0, '2PM':0, '4PM':0, '6PM':0 };
 
     filteredVisits.forEach(v => {
