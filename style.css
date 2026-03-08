@@ -1,0 +1,304 @@
+/* =========================================
+   GLOBAL UNIFIED THEME (SCHOOL/MODERN UI)
+   ========================================= */
+:root {
+    --primary-color: #0d6efd;       /* NEU Blue Accent */
+    --primary-light: #e7f1ff;       /* Soft blue background */
+    --bg-main: #f4f7f6;             /* Very subtle cool gray */
+    --surface-color: #ffffff;       /* Pure white */
+    --text-main: #2b3035;           /* Soft black */
+    --text-muted: #6c757d;          /* Gray */
+    --border-color: #e9ecef;        /* Soft borders */
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.08);
+    --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.06);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box; 
+}
+
+body, html { 
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden !important; 
+    background-color: var(--bg-main); 
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; 
+    letter-spacing: 0.01em;
+    color: var(--text-main);
+}
+.d-none { display: none !important; }
+
+/* =========================================
+   TERMINALS (CREATIVE & MODERN)
+   ========================================= */
+.terminal-layout {
+    /* Beautiful ambient radial background using subtle NEU colors */
+    background-color: #f4f7f6;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(13, 110, 253, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(25, 135, 84, 0.08) 0px, transparent 50%);
+}
+
+#terminal-wrapper .card {
+    border-radius: 2rem; /* Softer, rounder corners */
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: var(--shadow-md) !important;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px); /* Glassmorphism effect */
+}
+
+/* Enhancing inputs */
+.shadow-inner {
+    box-shadow: var(--shadow-inner) !important;
+}
+
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* Beautiful Icon Grid Buttons for Activities */
+.reason-btn { 
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    border-width: 2px; 
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    font-size: 1rem;
+    background-color: var(--surface-color);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Ensure clicks on icons/spans pass through to the button */
+.reason-btn i, .reason-btn span {
+    pointer-events: none;
+}
+
+.reason-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary-light);
+    color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+    background-color: var(--primary-light);
+}
+.reason-btn.active { 
+    background-color: var(--primary-color) !important; 
+    color: white !important; 
+    border-color: var(--primary-color) !important; 
+    transform: scale(0.96); 
+    box-shadow: inset 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.drop-shadow-sm {
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+
+/* =========================================
+   ADMIN DASHBOARD (Strict Fixed Shell)
+   ========================================= */
+
+/* Locks the entire admin portal to the exact dimensions of the monitor */
+#admin-wrapper.d-flex {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar locked to left side */
+.admin-sidebar {
+    width: 280px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    flex-shrink: 0; /* Never gets crushed */
+    z-index: 10;
+}
+
+.admin-sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0; /* Never shrinks */
+}
+
+/* CRITICAL FIX: flex: 1 1 0px forces this div to fit exactly between header and footer */
+.admin-nav-scroll {
+    flex: 1 1 0px; 
+    overflow-y: auto;
+    padding: 1rem;
+    scrollbar-width: none; /* Firefox */
+}
+.admin-nav-scroll::-webkit-scrollbar { 
+    display: none; /* Chrome/Safari */
+}
+
+.admin-sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    flex-shrink: 0; /* Permanently anchored to bottom */
+}
+
+/* Main Dashboard Right Side */
+.admin-main-bg {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto; /* ONLY the right side scrolls */
+    overflow-x: hidden;
+    background-color: var(--bg-main);
+}
+
+/* Dashboard UI Elements */
+.admin-card {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+#admin-sidebar-nav .nav-link {
+    color: var(--text-muted);
+    border-radius: 0.75rem;
+    padding: 12px 16px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+#admin-sidebar-nav .nav-link:hover { 
+    background-color: var(--bg-main); 
+    color: var(--text-main) !important; 
+}
+#admin-sidebar-nav .nav-link.active { 
+    background-color: var(--primary-light); 
+    color: var(--primary-color) !important; 
+    font-weight: 600;
+}
+
+.admin-table { 
+    --bs-table-bg: transparent; 
+    --bs-table-color: var(--text-main); 
+    border-color: var(--border-color); 
+}
+.admin-table th { 
+    color: var(--text-muted); 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border-color); 
+    padding: 16px 12px;
+}
+.admin-table td { 
+    color: var(--text-main); 
+    border-bottom: 1px solid var(--border-color); 
+    padding: 16px 12px; 
+}
+
+.custom-profile-hover {
+    transition: background-color 0.2s ease-in-out;
+}
+.custom-profile-hover:hover {
+    background-color: var(--bg-main);
+}
+
+.icon-box { 
+    width: 48px; 
+    height: 48px; 
+    border-radius: 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1.5rem; 
+}
+
+.form-control, .form-select {
+    border-color: var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--surface-color);
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 767.98px) {
+    #admin-wrapper.d-flex {
+        flex-direction: column !important;
+    }
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+    }
+    .admin-nav-scroll {
+        flex: none; /* Stop stretching on mobile */
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.5rem 1rem;
+    }
+    #admin-sidebar-nav {
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+    }
+    .admin-sidebar-footer {
+        display: none !important; /* Hide massive footer block on small phones */
+    }
+}
+
+/* =========================================
+   ANIMATIONS
+   ========================================= */
+.fade-in-up {
+    animation: fadeInUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.slide-in {
+    animation: slideIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.scale-in-center {
+    animation: scaleInCenter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    animation-delay: 0.1s; 
+    opacity: 0; 
+}
+
+.pulse-animation {
+    animation: pulseSoft 2s infinite;
+}
+
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    0% { opacity: 0; transform: translateX(-20px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleInCenter {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseSoft {
+    0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(13, 110, 253, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+}

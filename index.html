@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEU Library Visitor System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body> 
+
+    <div id="terminal-wrapper" class="terminal-layout container-fluid vh-100 w-100 d-none justify-content-center align-items-center overflow-auto p-0 m-0">
+        
+        <div id="device-setup" class="card p-5 text-center border-0 d-none shadow-lg fade-in-up" style="max-width: 500px; width: 100%;">
+            <img src="assets/neulibrary-logo.png" alt="NEU Logo" class="mx-auto mb-4 drop-shadow-sm" style="width: 110px;">
+            <h2 class="h3 fw-bold mb-2 text-dark">New Era University Library</h2>
+            <p class="text-muted small mb-4 px-3">Welcome! Please select whether you are entering or exiting the premises.</p>
+            <div class="d-grid gap-3">
+                <button id="set-entrance" class="btn btn-primary py-3 fw-bold fs-5 shadow-sm rounded-4 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-in-right fs-4"></i> ENTRANCE
+                </button>
+                <button id="set-exit" class="btn btn-warning py-3 fw-bold fs-5 shadow-sm rounded-4 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-right fs-4"></i> EXIT
+                </button>
+                <div class="position-relative mt-2">
+                    <hr class="text-muted opacity-25">
+                </div>
+                <button id="set-admin" class="btn btn-light text-muted py-2 fw-bold fs-6 rounded-4 border">
+                    <i class="bi bi-shield-lock me-2"></i> ADMIN Portal
+                </button>
+            </div>
+        </div>
+
+        <div id="login-screen" class="card p-5 text-center border-0 d-none shadow-lg fade-in-up" style="max-width: 420px; width: 100%;">
+            <div class="text-end mb-3">
+                <button class="btn btn-sm btn-light rounded-circle text-muted btn-reset-device shadow-sm" style="width: 35px; height: 35px;"><i class="bi bi-gear-fill"></i></button>
+            </div>
+            
+            <img src="assets/neulibrary-logo.png" alt="NEU Logo" class="mx-auto mb-4 drop-shadow-sm" style="width: 90px;">
+            
+            <h2 class="h4 fw-bold mb-2 text-dark">System Login</h2>
+            <p class="text-muted small mb-4">Sign in with your institutional email to proceed.</p>
+            <button id="btn-login" class="btn btn-primary w-100 py-3 fw-bold shadow-sm rounded-4 fs-5 hover-lift">
+                <i class="bi bi-google me-2"></i> Continue with Google
+            </button>
+        </div>
+
+        <div id="user-flow" class="card p-4 p-md-5 text-center border-0 d-none shadow-lg fade-in-up" style="max-width: 650px; width: 100%;">
+            <div id="onboarding-section" class="d-none text-start">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-person-vcard fs-2"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-1 text-dark">Complete Registration</h3>
+                    <p class="text-muted small">Please verify your details for your first visit.</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted ms-1">Full Name</label>
+                    <div class="input-group input-group-lg shadow-sm rounded-4 overflow-hidden">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                        <input type="text" id="onboard-full-name" class="form-control border-start-0 ps-0" placeholder="Enter Full Name" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small fw-bold text-muted ms-1">Account Role</label>
+                        <div class="input-group input-group-lg shadow-sm rounded-4 overflow-hidden">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-tag"></i></span>
+                            <select id="user-type-select" class="form-select border-start-0 ps-0 text-dark">
+                                <option value="" selected disabled>Select Role...</option>
+                                <option value="student">Student</option>
+                                <option value="faculty">Faculty</option>
+                                <option value="staff">Staff</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-7" id="onboard-college-wrapper">
+                        <label class="form-label small fw-bold text-muted ms-1">College / Department</label>
+                        <div class="input-group input-group-lg shadow-sm rounded-4 overflow-hidden">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-building"></i></span>
+                            <select id="college-select" class="form-select border-start-0 ps-0 text-dark" style="font-size: 0.95rem;">
+                                <option value="" selected disabled>Select College...</option>
+                                <option value="COA">College of Accountancy (COA)</option>
+                                <option value="CAS">College of Arts and Sciences (CAS)</option>
+                                <option value="CBA">College of Business and Administration (CBA)</option>
+                                <option value="COC">College of Communication (COC)</option>
+                                <option value="CICS">College of Informatics and Computing Studies (CICS)</option>
+                                <option value="CCR">College of Criminology (CCR)</option>
+                                <option value="COE">College of Education (COE)</option>
+                                <option value="CEA">College of Engineering and Architecture (CEA)</option>
+                                <option value="CMT">College of Medical Technology (CMT)</option>
+                                <option value="CMW">College of Midwifery (CMW)</option>
+                                <option value="CMU">College of Music (CMU)</option>
+                                <option value="CON">College of Nursing (CON)</option>
+                                <option value="CPT">College of Physical Therapy (CPT)</option>
+                                <option value="CRT">College of Respiratory Therapy (CRT)</option>
+                                <option value="SOIR">School of International Relations (SOIR)</option>
+                                <option value="University Office">University Office / Department</option>
+                                <option value="N/A">Not Applicable</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-save-profile" class="btn btn-primary w-100 py-3 fw-bold fs-5 rounded-4 shadow-sm hover-lift mt-2">Save & Continue <i class="bi bi-arrow-right ms-2"></i></button>
+            </div>
+
+            <div id="visit-section" class="d-none">
+                <h2 class="h3 fw-bold text-dark mb-1">Select Activities</h2>
+                <p class="text-muted small mb-4">What brings you to the library today? Select all that apply.</p>
+                
+                <div class="row g-2 g-md-3 mb-4 mt-0 m-0 text-center" id="reason-grid">
+                    <div class="col-6 col-md-4 p-1">
+                        <button class="btn w-100 h-100 py-3 reason-btn fw-bold rounded-4 d-flex flex-column align-items-center justify-content-center gap-2" data-reason="Reading Books">
+                            <i class="bi bi-book fs-3"></i><span>Reading Books</span>
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-4 p-1">
+                        <button class="btn w-100 h-100 py-3 reason-btn fw-bold rounded-4 d-flex flex-column align-items-center justify-content-center gap-2" data-reason="Thesis Work">
+                            <i class="bi bi-journal-bookmark fs-3"></i><span>Thesis Work</span>
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-4 p-1">
+                        <button class="btn w-100 h-100 py-3 reason-btn fw-bold rounded-4 d-flex flex-column align-items-center justify-content-center gap-2" data-reason="Computer Use">
+                            <i class="bi bi-pc-display fs-3"></i><span>PC Use</span>
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-4 p-1">
+                        <button class="btn w-100 h-100 py-3 reason-btn fw-bold rounded-4 d-flex flex-column align-items-center justify-content-center gap-2" data-reason="Studying / Reviewing">
+                            <i class="bi bi-pencil-square fs-3"></i><span class="lh-sm">Studying /<br>Reviewing</span>
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-4 p-1">
+                        <button class="btn w-100 h-100 py-3 reason-btn fw-bold rounded-4 d-flex flex-column align-items-center justify-content-center gap-2" data-reason="Borrowing of Books">
+                            <i class="bi bi-journal-arrow-up fs-3"></i><span class="lh-sm">Borrowing<br>of Books</span>
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-4 p-1">
+                        <button class="btn w-100 h-100 py-3 reason-btn fw-bold rounded-4 d-flex flex-column align-items-center justify-content-center gap-2" data-reason="Wi-Fi">
+                            <i class="bi bi-wifi fs-3"></i><span>Wi-Fi</span>
+                        </button>
+                    </div>
+                    <div class="col-12 p-1 mt-2">
+                        <button class="btn w-100 py-3 reason-btn fw-bold rounded-4 d-flex align-items-center justify-content-center gap-3" data-reason="Waiting / Between Classes">
+                            <i class="bi bi-clock-history fs-4"></i><span>Waiting / Between Classes</span>
+                        </button>
+                    </div>
+                </div>
+                <button id="btn-log-visit" class="btn btn-primary w-100 py-3 fw-bold fs-5 rounded-4 shadow hover-lift mt-2">Proceed Entry <i class="bi bi-door-open-fill ms-2"></i></button>
+            </div>
+
+            <div id="success-message" class="d-none py-5 fade-in-up">
+                <div class="mb-3 scale-in-center"><i class="bi bi-check-circle-fill text-success drop-shadow-sm" style="font-size: 6rem;"></i></div>
+                <h1 class="text-success fw-bolder mb-2" style="font-size: 2.5rem;">Welcome to the Library!</h1>
+                <p class="text-muted fs-5">Have a productive day!</p>
+            </div>
+        </div>
+
+        <div id="exit-terminal-screen" class="card p-4 p-md-5 text-center border-0 d-none shadow-lg fade-in-up" style="max-width: 1000px; width: 100%;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="bi bi-box-arrow-right fs-3"></i>
+                    </div>
+                    <h2 class="h3 fw-bold text-dark mb-0">Library Sign-Out</h2>
+                </div>
+                <button class="btn btn-sm btn-light rounded-circle text-muted btn-reset-device shadow-sm" style="width: 35px; height: 35px;"><i class="bi bi-gear-fill"></i></button>
+            </div>
+            
+            <div class="input-group input-group-lg mb-4 shadow-sm rounded-4 overflow-hidden border">
+                <span class="input-group-text bg-white border-0 text-primary"><i class="bi bi-search fs-5"></i></span>
+                <input type="text" id="exit-search-input" class="form-control border-0 bg-white py-3 fs-5" placeholder="Search by name, email, role, or college...">
+            </div>
+            
+            <div id="exit-table-container" class="table-responsive rounded-4 border bg-white text-start shadow-sm" style="max-height: 50vh; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th class="text-muted border-0 py-3 ps-4">Name</th>
+                            <th class="text-muted border-0 py-3">Email</th>
+                            <th class="text-muted border-0 py-3">Role</th>
+                            <th class="text-muted border-0 py-3">College/Dept</th>
+                            <th class="text-muted border-0 py-3">Time In</th>
+                            <th class="text-muted border-0 py-3 text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="active-users-list"></tbody>
+                </table>
+            </div>
+            <div id="exit-success" class="d-none py-5 scale-in-center">
+                <div class="mb-3"><i class="bi bi-door-closed-fill text-warning drop-shadow-sm" style="font-size: 5rem;"></i></div>
+                <h1 class="text-dark fw-bolder mb-2" style="font-size: 2.5rem;">Signed Out</h1>
+                <p class="text-muted fs-5 mb-0" id="exit-success-name"></p>
+                <p class="text-muted mt-2">Thank you for visiting.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="admin-wrapper" class="d-none dark-theme">
+        
+        <aside class="admin-sidebar shadow-sm">
+            
+            <div class="admin-sidebar-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="assets/neulibrary-logo.png" alt="Logo" width="40" height="40" class="me-3">
+                    <span class="fs-5 fw-bold lh-sm text-dark">NEU Library<br><small class="text-muted fs-6 fw-normal">Admin Portal</small></span>
+                </div>
+                <div class="d-md-none d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" id="btn-change-terminal" title="Change Terminal">
+                        <i class="bi bi-gear"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" id="btn-logout-mobile" title="Sign Out">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="admin-nav-scroll">
+                <ul class="nav nav-pills flex-column gap-2 m-0" id="admin-sidebar-nav">
+                    <li class="nav-item"><button class="nav-link active text-start w-100 fs-6 py-2 py-md-3 text-nowrap" id="nav-dashboard"><i class="bi bi-grid-1x2 me-2"></i> Dashboard</button></li>
+                    <li class="nav-item"><button class="nav-link text-start w-100 fs-6 py-2 py-md-3 text-nowrap" id="nav-student-logs"><i class="bi bi-journal-text me-2"></i> Student Logs</button></li>
+                    <li class="nav-item"><button class="nav-link text-start w-100 fs-6 py-2 py-md-3 text-nowrap" id="nav-faculty-logs"><i class="bi bi-person-workspace me-2"></i> Faculty Logs</button></li>
+                    <li class="nav-item"><button class="nav-link text-start w-100 fs-6 py-2 py-md-3 text-nowrap" id="nav-staff-logs"><i class="bi bi-briefcase me-2"></i> Staff Logs</button></li>
+                    <li class="nav-item"><button class="nav-link text-start w-100 fs-6 py-2 py-md-3 text-nowrap" id="nav-users"><i class="bi bi-people me-2"></i> Manage Users</button></li>
+                </ul>
+            </div>
+
+            <div class="admin-sidebar-footer">
+                <div class="d-flex align-items-center mb-3 custom-profile-hover p-2 rounded-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex justify-content-center align-items-center me-3 flex-shrink-0" style="width: 48px; height: 48px;">
+                        <i class="bi bi-person-fill fs-3 text-primary"></i>
+                    </div>
+                    <div class="lh-sm overflow-hidden w-100">
+                        <strong id="admin-user-name" class="d-block text-truncate fs-6 mb-1 text-dark">Carl Geneson Ola</strong>
+                        <small class="text-muted d-block text-truncate fw-medium">Administrator</small>
+                    </div>
+                </div>
+                <button id="btn-logout" class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center py-2 fs-6 fw-bold rounded-3">
+                    <i class="bi bi-box-arrow-right me-2"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="admin-main-bg p-3 p-md-4 p-xl-5">
+            
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+                <div>
+                    <span class="small fw-bold text-muted">Library System <span class="mx-1">></span> <span id="current-page-title-breadcrumb" class="fw-normal">Overview</span></span>
+                    <h2 class="fw-bold mb-0 mt-1 text-dark" id="current-page-title">Library Statistics</h2>
+                </div>
+                
+                <div id="dashboard-date-filters" class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
+                    <select id="dashboard-period-filter" class="form-select border-0 shadow-sm text-dark pe-4" style="width: 200px; flex-shrink: 0;">
+                        <option value="today">Today</option>
+                        <option value="weekly">This Week</option>
+                        <option value="monthly">This Month</option>
+                        <option value="all">All Time</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                    <div id="dashboard-custom-range" class="d-none gap-2 align-items-center">
+                        <span class="small text-muted fw-bold">From</span>
+                        <input type="date" id="dashboard-start-date" class="form-control border-0 shadow-sm px-2 text-dark" style="max-width: 150px;">
+                        <span class="small text-muted fw-bold">To</span>
+                        <input type="date" id="dashboard-end-date" class="form-control border-0 shadow-sm px-2 text-dark" style="max-width: 150px;">
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-dashboard" class="admin-section">
+                
+                <div class="row g-4 mb-4 m-0 w-100">
+                    <div class="col-12 col-md-4 p-0 pe-md-2">
+                        <div class="admin-card p-4 h-100 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-auto">
+                                <div class="icon-box bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
+                            </div>
+                            <div class="mt-4">
+                                <h6 class="mb-2 d-flex align-items-center fw-bold text-muted">Total Visitors <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">Filtered</span></h6>
+                                <div style="min-height: 50px;" class="d-flex align-items-end">
+                                    <h1 class="fw-bold mb-0 display-5 text-dark lh-1" id="stat-total-today">0</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 p-0 px-md-2">
+                        <div class="admin-card p-4 h-100 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-auto">
+                                <div class="icon-box bg-success bg-opacity-10 text-success"><i class="bi bi-record-circle-fill"></i></div>
+                            </div>
+                            <div class="mt-4">
+                                <h6 class="mb-2 d-flex align-items-center fw-bold text-muted">Active Users Now <span class="badge bg-success bg-opacity-10 text-success ms-2">Live</span></h6>
+                                <div style="min-height: 50px;" class="d-flex align-items-end justify-content-between">
+                                    <h1 class="fw-bold mb-0 display-5 text-dark lh-1" id="stat-active">0</h1>
+                                    <button id="btn-force-close" class="btn btn-sm btn-outline-danger fw-bold shadow-sm" title="Force Close Active Sessions"><i class="bi bi-power"></i> Auto-Close (7PM)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 p-0 ps-md-2">
+                        <div class="admin-card p-4 h-100 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-auto">
+                                <div class="icon-box bg-warning bg-opacity-10 text-warning"><i class="bi bi-mortarboard-fill"></i></div>
+                            </div>
+                            <div class="mt-4">
+                                <h6 class="mb-2 d-flex align-items-center fw-bold text-muted">Top College <span class="badge bg-warning bg-opacity-10 text-warning ms-auto">Filtered</span></h6>
+                                <div style="min-height: 50px;" class="d-flex align-items-end">
+                                    <h2 class="fw-bold mb-0 text-truncate text-dark lh-1" style="font-size: 2.2rem;" id="stat-top-college">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4 m-0 w-100">
+                    <div class="col-12 p-0 px-md-1">
+                        <div class="admin-card p-4 h-100">
+                            <h5 class="fw-bold mb-1 text-dark">Visitor Traffic Trends</h5>
+                            <p class="small mb-4 text-muted">Check-ins across all departments based on time of day.</p>
+                            <div style="position: relative; height: 350px; width: 100%;">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5 m-0 w-100">
+                    <div class="col-12 col-xl-6 p-0 pe-xl-2">
+                        <div class="admin-card p-4 h-100 d-flex flex-column">
+                            <h5 class="fw-bold mb-1 text-dark">Demographics</h5>
+                            <p class="small mb-4 text-muted">By College Affiliation</p>
+                            <div style="position: relative; height: 300px; width: 100%;" class="flex-grow-1 d-flex justify-content-center align-items-center">
+                                <canvas id="collegeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-6 p-0 ps-xl-2 mt-4 mt-xl-0">
+                        <div class="admin-card p-4 h-100 d-flex flex-column">
+                            <h5 class="fw-bold mb-1 text-dark">Top Resources</h5>
+                            <p class="small mb-4 text-muted">Most popular tracked library activities</p>
+                            <div style="position: relative; height: 300px; width: 100%;" class="flex-grow-1 d-flex justify-content-center align-items-center">
+                                <canvas id="activitiesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card p-4">
+                    <h5 class="fw-bold mb-1 text-dark">Recent Logs in Range</h5>
+                    <p class="small mb-4 text-muted">Latest check-ins matching the filtered period.</p>
+                    <div class="table-responsive">
+                        <table class="table table-hover admin-table mb-0 align-middle w-100">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">NAME</th>
+                                    <th class="border-0">ROLE</th>
+                                    <th class="border-0">DEPARTMENT / COLLEGE</th>
+                                    <th class="border-0">CHECK-IN TIME</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-logs-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="section-users" class="admin-section d-none">
+                <div class="admin-card p-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                        <h5 class="fw-bold mb-0 text-dark">System User Directory</h5>
+                        <div class="input-group" style="max-width: 400px;">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" id="admin-user-search" class="form-control border-start-0 bg-light" placeholder="Search users...">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover admin-table align-middle mb-0 w-100">
+                            <thead class="table-light sticky-top">
+                                <tr><th class="border-0">NAME</th><th class="border-0">EMAIL</th><th class="border-0">ROLE</th><th class="border-0">COLLEGE</th><th class="border-0">STATUS</th><th class="border-0 text-end">ACTION</th></tr>
+                            </thead>
+                            <tbody id="admin-users-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-logs" class="admin-section d-none">
+                <div class="admin-card p-4 mb-4 bg-white">
+                    <div class="row g-4 align-items-end m-0 w-100">
+                        <div class="col-12 col-xl-5 p-0 pe-xl-3">
+                            <label class="small mb-2 fw-bold text-muted">Select Date Filter</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <select id="report-period-filter" class="form-select text-dark pe-4" style="width: 200px; flex-shrink: 0;">
+                                    <option value="specific">Specific Day</option>
+                                    <option value="today">Today</option>
+                                    <option value="weekly">This Week</option>
+                                    <option value="monthly">This Month</option>
+                                    <option value="all">All Time</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                                <input type="date" id="report-date" class="form-control text-dark" style="max-width: 180px;">
+                                
+                                <div id="custom-range-inputs" class="d-none flex-wrap gap-2 align-items-center">
+                                    <span class="small text-muted fw-bold">From</span>
+                                    <input type="date" id="report-start-date" class="form-control text-dark px-2" style="max-width: 150px;">
+                                    <span class="small text-muted fw-bold">To</span>
+                                    <input type="date" id="report-end-date" class="form-control text-dark px-2" style="max-width: 150px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-4 p-0 px-xl-3" id="report-college-container">
+                            <label class="small mb-2 fw-bold text-muted">Filter by College / Department</label>
+                            <select id="report-college" class="form-select text-dark">
+                                <option value="ALL">All Colleges / Departments</option>
+                                <option value="COA">College of Accountancy (COA)</option>
+                                <option value="CAS">College of Arts and Sciences (CAS)</option>
+                                <option value="CBA">College of Business and Administration (CBA)</option>
+                                <option value="COC">College of Communication (COC)</option>
+                                <option value="CICS">College of Informatics and Computing Studies (CICS)</option>
+                                <option value="CCR">College of Criminology (CCR)</option>
+                                <option value="COE">College of Education (COE)</option>
+                                <option value="CEA">College of Engineering and Architecture (CEA)</option>
+                                <option value="CMT">College of Medical Technology (CMT)</option>
+                                <option value="CMW">College of Midwifery (CMW)</option>
+                                <option value="CMU">College of Music (CMU)</option>
+                                <option value="CON">College of Nursing (CON)</option>
+                                <option value="CPT">College of Physical Therapy (CPT)</option>
+                                <option value="CRT">College of Respiratory Therapy (CRT)</option>
+                                <option value="SOIR">School of International Relations (SOIR)</option>
+                                <option value="University Office">University Office / Department</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-xl-3 p-0 ps-xl-3 mt-4 mt-xl-0">
+                            <button id="btn-generate-report" class="btn btn-primary w-100 fw-bold py-2"><i class="bi bi-funnel"></i> Generate Log</button>
+                            <div class="d-flex gap-2 mt-2" id="export-buttons-group">
+                                <button id="btn-export-pdf" class="btn btn-outline-dark w-100 d-none fw-bold py-2"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+                                <button id="btn-export-csv" class="btn btn-success w-100 d-none fw-bold py-2"><i class="bi bi-file-earmark-spreadsheet"></i> CSV</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pdf-content-area" class="admin-card bg-white text-dark d-none border-0 shadow-sm overflow-hidden" style="border-top: 10px solid #0d6efd !important; border-radius: 0;">
+                    <div class="p-4 p-md-5">
+                        
+                        <div class="d-flex align-items-center justify-content-between mb-4 pb-4 border-bottom border-2">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="assets/neulibrary-logo.png" alt="NEU Logo" style="width: 80px;">
+                                <div>
+                                    <h2 class="fw-bolder mb-0 text-dark" style="letter-spacing: -0.5px;">NEW ERA UNIVERSITY</h2>
+                                    <h5 class="text-muted fw-normal mb-0">University Library System</h5>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <h4 class="fw-bold text-primary mb-1">LOG REPORT</h4>
+                                <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2 border border-primary">
+                                    Total Records: <span id="report-total-count" class="fw-bolder">0</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-5 bg-light rounded-4 p-3 border">
+                            <div class="col-12 col-md-4">
+                                <span class="d-block small text-muted fw-bold text-uppercase mb-1"><i class="bi bi-person-badge me-1"></i> User Role Target</span>
+                                <strong class="fs-5 text-dark" id="report-meta-role">STUDENT</strong>
+                            </div>
+                            <div class="col-12 col-md-4 border-start border-md-0">
+                                <span class="d-block small text-muted fw-bold text-uppercase mb-1"><i class="bi bi-building me-1"></i> College / Department</span>
+                                <strong class="fs-5 text-dark" id="report-meta-dept">ALL DEPARTMENTS</strong>
+                            </div>
+                            <div class="col-12 col-md-4 border-start border-md-0">
+                                <span class="d-block small text-muted fw-bold text-uppercase mb-1"><i class="bi bi-calendar-range me-1"></i> Scope / Date Range</span>
+                                <strong class="fs-5 text-dark" id="report-meta-date">TODAY</strong>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mb-4">
+                            <table class="table table-striped table-hover align-middle border mb-0" id="report-main-table">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="py-3 px-3 border-0">Visitor Name</th>
+                                        <th class="py-3 px-3 border-0">Email Address</th>
+                                        <th class="py-3 px-3 border-0">College/Dept</th>
+                                        <th class="py-3 px-3 border-0">Activities Logged</th>
+                                        <th class="py-3 px-3 border-0">Time In</th>
+                                        <th class="py-3 px-3 border-0">Time Out</th>
+                                        <th class="py-3 px-3 border-0 text-center">Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-table-body" class="border-top-0">
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-5 pt-3 border-top d-flex justify-content-between align-items-center text-muted small">
+                            <span>For Official Use Only</span>
+                            <span id="report-generation-time" class="fw-medium"></span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="src/app.js"></script>
+</body>
+</html>
