@@ -41,7 +41,7 @@ export const DB = {
         }, { merge: true });
     },
 
-    // NEW: Handles the 7:00 PM Auto Checkout
+    //Handles the 7:00 PM Auto Checkout
     async forceCheckoutAllActive() {
         const q = query(collection(db, "visits"), where("status", "==", "active"));
         const activeDocs = await getDocs(q);
@@ -57,7 +57,7 @@ export const DB = {
         return await Promise.all(promises);
     },
 
-    // --- ADMIN METHODS ---
+    //ADMIN METHODS
 
     async getAllVisits() {
         const q = query(collection(db, "visits"), orderBy("timeIn", "desc"));

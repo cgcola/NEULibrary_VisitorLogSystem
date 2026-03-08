@@ -2,7 +2,7 @@ import { getCurrentLogView } from './adminController.js';
 
 let currentVisits = [];
 let isReportSetup = false;
-let lastGeneratedReportData = []; // Store this for CSV exporting
+let lastGeneratedReportData = [];
 
 const activityMap = {
     "Reading": "Reading Books",

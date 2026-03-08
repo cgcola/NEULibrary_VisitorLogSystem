@@ -34,7 +34,7 @@ async function loadExitTerminal() {
             tr.className = 'active-user-row bg-white border-bottom';
             tr.dataset.search = `${data.name?.toLowerCase() || ''} ${data.email?.toLowerCase() || ''} ${data.college?.toLowerCase() || ''} ${role.toLowerCase()}`;
             
-            // Populating the 6 columns: Name | Email | Role | College | Time In | Action
+            // Populating the 6 columns: Action | Name | Email | Role | College | Time In
             tr.innerHTML = `
                 <td class="text-end pe-4 py-3">
                     <button class="btn btn-warning fw-bold px-4 py-2 btn-checkout shadow-sm rounded-pill hover-lift">Sign Out</button>

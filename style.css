@@ -1,14 +1,14 @@
 /* =========================================
-   GLOBAL UNIFIED THEME (SCHOOL/MODERN UI)
+   GLOBAL UNIFIED THEME
    ========================================= */
 :root {
-    --primary-color: #0d6efd;       /* NEU Blue Accent */
-    --primary-light: #e7f1ff;       /* Soft blue background */
-    --bg-main: #f4f7f6;             /* Very subtle cool gray */
-    --surface-color: #ffffff;       /* Pure white */
-    --text-main: #2b3035;           /* Soft black */
-    --text-muted: #6c757d;          /* Gray */
-    --border-color: #e9ecef;        /* Soft borders */
+    --primary-color: #0d6efd;       
+    --primary-light: #e7f1ff;       
+    --bg-main: #f4f7f6;             
+    --surface-color: #ffffff;       
+    --text-main: #2b3035;           
+    --text-muted: #6c757d;          
+    --border-color: #e9ecef;        
     --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.08);
     --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.06);
@@ -35,7 +35,6 @@ body, html {
    TERMINALS (CREATIVE & MODERN)
    ========================================= */
 .terminal-layout {
-    /* Beautiful ambient radial background using subtle NEU colors */
     background-color: #f4f7f6;
     background-image: 
         radial-gradient(at 0% 0%, rgba(13, 110, 253, 0.08) 0px, transparent 50%),
@@ -43,14 +42,13 @@ body, html {
 }
 
 #terminal-wrapper .card {
-    border-radius: 2rem; /* Softer, rounder corners */
+    border-radius: 2rem; 
     border: 1px solid rgba(255, 255, 255, 0.8) !important;
     box-shadow: var(--shadow-md) !important;
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px); /* Glassmorphism effect */
+    backdrop-filter: blur(12px); 
 }
 
-/* Enhancing inputs */
 .shadow-inner {
     box-shadow: var(--shadow-inner) !important;
 }
@@ -63,7 +61,6 @@ body, html {
     box-shadow: var(--shadow-md) !important;
 }
 
-/* Beautiful Icon Grid Buttons for Activities */
 .reason-btn { 
     transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); 
     border-width: 2px; 
@@ -74,7 +71,6 @@ body, html {
     box-shadow: var(--shadow-sm);
 }
 
-/* Ensure clicks on icons/spans pass through to the button */
 .reason-btn i, .reason-btn span {
     pointer-events: none;
 }
@@ -102,8 +98,6 @@ body, html {
 /* =========================================
    ADMIN DASHBOARD (Strict Fixed Shell)
    ========================================= */
-
-/* Locks the entire admin portal to the exact dimensions of the monitor */
 #admin-wrapper.d-flex {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -112,7 +106,6 @@ body, html {
     overflow: hidden;
 }
 
-/* Sidebar locked to left side */
 .admin-sidebar {
     width: 280px;
     height: 100%;
@@ -120,39 +113,38 @@ body, html {
     flex-direction: column;
     background-color: var(--surface-color);
     border-right: 1px solid var(--border-color);
-    flex-shrink: 0; /* Never gets crushed */
+    flex-shrink: 0;
     z-index: 10;
 }
 
 .admin-sidebar-header {
     padding: 1.5rem;
     border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0; /* Never shrinks */
+    flex-shrink: 0;
 }
 
-/* CRITICAL FIX: flex: 1 1 0px forces this div to fit exactly between header and footer */
 .admin-nav-scroll {
     flex: 1 1 0px; 
     overflow-y: auto;
     padding: 1rem;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
 }
 .admin-nav-scroll::-webkit-scrollbar { 
-    display: none; /* Chrome/Safari */
+    display: none;
 }
 
 .admin-sidebar-footer {
     padding: 1.5rem;
     border-top: 1px solid var(--border-color);
     background-color: var(--surface-color);
-    flex-shrink: 0; /* Permanently anchored to bottom */
+    flex-shrink: 0;
 }
 
 /* Main Dashboard Right Side */
 .admin-main-bg {
     flex: 1;
     height: 100%;
-    overflow-y: auto; /* ONLY the right side scrolls */
+    overflow-y: auto;
     overflow-x: hidden;
     background-color: var(--bg-main);
 }
@@ -257,7 +249,7 @@ body, html {
         flex-wrap: nowrap;
     }
     .admin-sidebar-footer {
-        display: none !important; /* Hide massive footer block on small phones */
+        display: none !important;
     }
 }
 

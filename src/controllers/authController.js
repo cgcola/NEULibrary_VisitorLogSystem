@@ -3,8 +3,6 @@ import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstati
 import { UI } from '../modules/ui.js';
 import { DB } from '../modules/database.js';
 import { setupVisitLogging } from './entranceTerminal.js';
-
-// ✅ Make sure this points to the newly created admin folder!
 import { initAdmin, loadAdminDashboard } from './admin/adminController.js';
 
 provider.setCustomParameters({ 
@@ -51,15 +49,23 @@ async function handleManualRouting(user, deviceRole) {
             return; 
         }
 
-        if (userData.role === 'admin' && deviceRole === 'admin') {
-            document.getElementById('admin-user-name').innerText = userData.name || "Admin";
-            UI.showScreen('admin');
-            
-            // Initialize the newly split admin modules
-            initAdmin();
-            loadAdminDashboard();
-            
-        } else if (deviceRole === 'entrance') {
+        // ADMIN LOGIN LOGIC
+        if (deviceRole === 'admin') {
+            if (userData.role === 'admin') {
+                // Success: Load Admin Dashboard
+                document.getElementById('admin-user-name').innerText = userData.name || "Admin";
+                UI.showScreen('admin');
+                initAdmin();
+                loadAdminDashboard();
+            } else {
+                // FAILED: User is NOT an admin
+                await signOut(auth); // Log them out immediately
+                alert("⚠️ ACCESS DENIED\n\nYou do not have Administrator privileges for this portal.\n\nIf you are trying to log inside the library to study or read, please click the gear icon to return to the main menu and select 'ENTRANCE'.");
+                location.reload(); // Refresh the page to reset the terminal
+            }
+        } 
+        // ENTRANCE LOGIN LOGIC
+        else if (deviceRole === 'entrance') {
             const activeSessionUser = { 
                 uid: user.uid, 
                 email: user.email, 

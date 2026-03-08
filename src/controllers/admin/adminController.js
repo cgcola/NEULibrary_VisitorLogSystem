@@ -9,7 +9,7 @@ export function initAdmin() {
     setupNavLinks();
 }
 
-// Export this getter so the reports module knows which tab is currently active
+// Export getter so the reports module knows which tab is currently active
 export function getCurrentLogView() {
     return currentActiveLogView;
 }

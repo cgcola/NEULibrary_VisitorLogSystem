@@ -6,22 +6,22 @@ import { auth } from './config/firebase.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 0. Force a clean slate whenever the main setup screen loads
+    // Force a clean slate whenever the main setup screen loads
     try {
         await signOut(auth);
     } catch (e) {
         console.log("No active session to clear.");
     }
 
-    // 1. Show the device setup screen by default on load
+    // Show the device setup screen by default on load
     UI.showScreen('deviceSetup');
 
-    // 2. GLOBALLY activate all "Change Terminal" (gear) buttons
+    // GLOBALLY activate all "Change Terminal" (gear) buttons
     document.querySelectorAll('.btn-reset-device').forEach(btn => {
         btn.onclick = () => location.reload();
     });
 
-    // 3. Setup button listeners for terminal roles
+    // Setup button listeners for terminal roles
     const btnEntrance = document.getElementById('set-entrance');
     const btnExit = document.getElementById('set-exit');
     const btnAdmin = document.getElementById('set-admin');

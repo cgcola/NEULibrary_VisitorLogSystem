@@ -3,7 +3,7 @@ import { loadAdminDashboard } from './adminController.js';
 
 let collegeChartInstance = null; 
 let trendChartInstance = null;
-let activityChartInstance = null; // New Chart Instance
+let activityChartInstance = null;
 let currentVisits = [];
 let isFilterSetup = false;
 
