@@ -48,16 +48,16 @@ async function handleManualRouting(user, deviceRole) {
         if (dynamicWhitelist.includes(user.email.toLowerCase())) {
             console.log("VIP Admin Detected! Bypassing registration...");
 
-            // 1. Fetch raw name from Google
+            // Fetch raw name from Google
             let rawName = user.displayName || "Admin User";
             
-            // 2. If it's reversed with a comma (Ola, Carl), flip it around
+            // If it's reversed with a comma (Ola, Carl), flip it around
             if (rawName.includes(',')) {
                 const parts = rawName.split(',');
                 rawName = `${parts[1].trim()} ${parts[0].trim()}`;
             }
             
-            // 3. Force Proper Casing (e.g. CARL -> Carl)
+            // Force Proper Casing (e.g. CARL -> Carl)
             const cleanName = rawName.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
 
             // Silently create their Admin profile in the background using the clean name
