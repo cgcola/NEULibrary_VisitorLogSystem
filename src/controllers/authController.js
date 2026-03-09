@@ -65,7 +65,7 @@ async function handleManualRouting(user, deviceRole) {
                 email: user.email, 
                 name: cleanName, 
                 collegeOrOffice: "University Library",
-                userType: "staff",
+                userType: "admin",
                 role: "admin" 
             });
             
