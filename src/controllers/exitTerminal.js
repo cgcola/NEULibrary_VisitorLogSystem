@@ -1,8 +1,14 @@
 import { UI } from '../modules/ui.js';
 import { DB } from '../modules/database.js';
 
+// Global variables to hold the context of the user trying to exit
+let pendingExitVisitId = null;
+let pendingExitCorrectEmail = null;
+let pendingExitName = null;
+
 export function initExit() {
     loadExitTerminal();
+    setupExitSecurity();
     
     // Ensure the settings button on exit screen can return to main menu
     document.querySelectorAll('.btn-reset-device').forEach(btn => {
@@ -34,18 +40,33 @@ async function loadExitTerminal() {
             tr.className = 'active-user-row bg-white border-bottom';
             tr.dataset.search = `${data.name?.toLowerCase() || ''} ${data.email?.toLowerCase() || ''} ${data.college?.toLowerCase() || ''} ${role.toLowerCase()}`;
             
-            // Populating the 6 columns: Action | Name | Email | Role | College | Time In
+            // Populating the columns: Action | Name | Role | College | Time In
             tr.innerHTML = `
-                <td class="text-end pe-4 py-3">
+                <td class="text-center py-3">
                     <button class="btn btn-warning fw-bold px-4 py-2 btn-checkout shadow-sm rounded-pill hover-lift">Sign Out</button>
                 </td>
-                <td class="fw-bold fs-6 text-dark ps-4 py-3">${data.name || 'N/A'}</td>
-                <td class="text-muted py-3">${data.email || 'N/A'}</td>
-                <td class="py-3"><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">${role}</span></td>
-                <td class="py-3"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-2 py-1">${data.college || 'N/A'}</span></td>
-                <td class="fw-medium text-dark py-3">${timeIn}</td>`;
+                <td class="fw-bold fs-6 text-dark text-center py-3">${data.name || 'N/A'}</td>
+                <td class="text-center py-3"><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">${role}</span></td>
+                <td class="text-center py-3"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-2 py-1">${data.college || 'N/A'}</span></td>
+                <td class="text-center fw-medium text-dark py-3">${timeIn}</td>`;
                 
-            tr.querySelector('.btn-checkout').onclick = () => handleCheckout(docSnap.id, data.name, tr);
+            // Open Modal Instead of Checking Out
+            tr.querySelector('.btn-checkout').onclick = () => {
+                pendingExitVisitId = docSnap.id;
+                pendingExitCorrectEmail = data.email;
+                pendingExitName = data.name;
+                
+                // Reset modal state
+                const emailInput = document.getElementById('verify-exit-email');
+                emailInput.value = '';
+                emailInput.classList.remove('is-invalid');
+                document.getElementById('verify-exit-error').classList.add('d-none');
+                
+                // Show modal
+                const exitModal = new bootstrap.Modal(document.getElementById('exitSecurityModal'));
+                exitModal.show();
+            };
+
             list.appendChild(tr);
         });
 
@@ -65,32 +86,63 @@ async function loadExitTerminal() {
     }
 }
 
-async function handleCheckout(visitId, name, rowElement) {
-    const btn = rowElement.querySelector('.btn-checkout');
-    btn.disabled = true; 
-    btn.innerText = "Signing out...";
+// The logic that powers the Security Modal
+function setupExitSecurity() {
+    const btnConfirm = document.getElementById('btn-confirm-exit');
+    const emailInput = document.getElementById('verify-exit-email');
+    const errorMsg = document.getElementById('verify-exit-error');
     
-    try {
-        await DB.checkoutVisit(visitId);
-        
-        document.getElementById('exit-table-container').classList.add('d-none');
-        document.getElementById('exit-success-name').innerText = name || "Visitor";
-        document.getElementById('exit-success').classList.remove('d-none');
-        
-        setTimeout(() => {
-            document.getElementById('exit-table-container').classList.remove('d-none');
-            document.getElementById('exit-success').classList.add('d-none');
+    if (btnConfirm) {
+        btnConfirm.onclick = async () => {
+            const typedEmail = emailInput.value.trim().toLowerCase();
             
-            const searchBox = document.getElementById('exit-search-input');
-            if (searchBox) searchBox.value = ""; 
-            
-            loadExitTerminal(); 
-        }, 2000); 
-        
-    } catch (error) { 
-        console.error("Firebase Checkout Error:", error);
-        alert("Checkout Failed: " + (error.message || error)); 
-        btn.disabled = false; 
-        btn.innerText = "Sign Out";
+            // Check if the typed email exactly matches the database email
+            if (typedEmail === pendingExitCorrectEmail.toLowerCase()) {
+                
+                // UI Feedback
+                btnConfirm.disabled = true;
+                btnConfirm.innerHTML = '<i class="bi bi-hourglass-split"></i> Verifying...';
+                
+                try {
+                    // It's a match! Proceed with actual checkout
+                    await DB.checkoutVisit(pendingExitVisitId);
+                    
+                    // Hide the Modal
+                    const modalElement = document.getElementById('exitSecurityModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    modalInstance.hide();
+                    
+                    // Show Success Screen
+                    document.getElementById('exit-search-input').value = '';
+                    document.getElementById('exit-table-container').classList.add('d-none');
+                    document.getElementById('exit-success').classList.remove('d-none');
+                    document.getElementById('exit-success-name').innerText = pendingExitName;
+                    
+                    // Reset terminal after 3 seconds and reload the table
+                    setTimeout(() => {
+                        document.getElementById('exit-success').classList.add('d-none');
+                        document.getElementById('exit-table-container').classList.remove('d-none');
+                        btnConfirm.disabled = false;
+                        btnConfirm.innerHTML = 'Confirm Sign-Out';
+                        
+                        loadExitTerminal(); 
+                    }, 3000);
+
+                } catch (error) {
+                    console.error("Firebase Checkout Error:", error);
+                    alert("Checkout Failed. Please check your connection."); 
+                    btnConfirm.disabled = false;
+                    btnConfirm.innerHTML = 'Confirm Sign-Out';
+                }
+                
+            } else {
+                // Emails don't match!
+                errorMsg.classList.remove('d-none');
+                emailInput.classList.add('is-invalid');
+                
+                emailInput.classList.add('shake-animation');
+                setTimeout(() => emailInput.classList.remove('shake-animation'), 500);
+            }
+        };
     }
 }

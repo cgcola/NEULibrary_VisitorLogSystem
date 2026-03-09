@@ -61,57 +61,50 @@ function setupNavLinks() {
 
 export async function loadAdminDashboard() {
     try {
-        const allVisitsSnap = await DB.getAllVisits();
-        const allUsersSnap = await DB.getAllUsers();
-        
-        const allVisitsCache = [];
-        allVisitsSnap.forEach(doc => allVisitsCache.push({ id: doc.id, ...doc.data() }));
-        
-        const allUsersCache = []; 
-        allUsersSnap.forEach(doc => allUsersCache.push({ id: doc.id, ...doc.data() }));
+        // Fetch the safe, limited chunks of data
+        const recentVisitsCache = await DB.getRecentVisits(1000);
+        const initialUsersData = await DB.getUsersPaginated(50, null);
 
         // Start the invisible 7:00 PM background watcher
-        startSmartClosingWatcher(allVisitsCache);
+        startSmartClosingWatcher(recentVisitsCache);
 
-        // Distribute the data to the child modules
-        initOverview(allVisitsCache); 
-        initUsers(allUsersCache);
-        initReports(allVisitsCache); 
+        // Distribute the safe data to the child modules
+        initOverview(recentVisitsCache); 
+        initUsers(initialUsersData.users, initialUsersData.lastDoc); // Pass users AND bookmark
+        initReports(recentVisitsCache); 
+        
     } catch (e) { 
         console.error("Admin Load Error:", e); 
+        alert("Failed to load dashboard data. Please check your connection.");
     }
 }
 
 // SMART 7:00 PM BACKGROUND TIMER
 function startSmartClosingWatcher(visitsCache) {
-    // Check the clock every 1 minute (60000 ms)
     setInterval(async () => {
         const now = new Date();
         
         // If the current time is exactly 19:00 (7:00 PM)
         if (now.getHours() === 19 && now.getMinutes() === 0) {
             
-            // Find anyone who hasn't logged out
-            const activeVisits = visitsCache.filter(v => !v.timeOut);
+            const activeVisits = visitsCache.filter(v => v.status === 'active' || !v.timeOut);
             
             if (activeVisits.length > 0) {
                 for (const visit of activeVisits) {
-                    const checkInTime = new Date(visit.timeIn);
+                    const checkInTime = visit.timeIn && typeof visit.timeIn.toDate === 'function' 
+                        ? visit.timeIn.toDate() 
+                        : new Date(visit.timeIn);
                     
-                    // Stamp them out at exactly 7:00 PM on their check-in day
                     const forcedOutTime = new Date(checkInTime);
                     forcedOutTime.setHours(19, 0, 0, 0); 
 
-                    // Ensure your DB module handles the update logic correctly
                     await DB.updateVisit(visit.id, {
-                        timeOut: forcedOutTime.toISOString(),
+                        timeOut: forcedOutTime,
                         status: 'completed' 
                     });
                 }
-                
-                // Refresh the dashboard so the librarian sees it instantly drop to 0
                 location.reload(); 
             }
         }
-    }, 60000); 
+    }, 60000);
 }

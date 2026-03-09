@@ -49,22 +49,18 @@ async function handleManualRouting(user, deviceRole) {
             return; 
         }
 
-        // ADMIN LOGIN LOGIC
         if (deviceRole === 'admin') {
             if (userData.role === 'admin') {
-                // Success: Load Admin Dashboard
                 document.getElementById('admin-user-name').innerText = userData.name || "Admin";
                 UI.showScreen('admin');
                 initAdmin();
                 loadAdminDashboard();
             } else {
-                // FAILED: User is NOT an admin
-                await signOut(auth); // Log them out immediately
+                await signOut(auth); 
                 alert("⚠️ ACCESS DENIED\n\nYou do not have Administrator privileges for this portal.\n\nIf you are trying to log inside the library to study or read, please click the gear icon to return to the main menu and select 'ENTRANCE'.");
-                location.reload(); // Refresh the page to reset the terminal
+                location.reload(); 
             }
         } 
-        // ENTRANCE LOGIN LOGIC
         else if (deviceRole === 'entrance') {
             const activeSessionUser = { 
                 uid: user.uid, 
@@ -81,9 +77,67 @@ async function handleManualRouting(user, deviceRole) {
 }
 
 function setupOnboarding(user) {
-    const nameInput = document.getElementById('onboard-full-name');
-    nameInput.value = user.displayName || ""; 
+    const displayName = user.displayName || "";
+    const fNameInput = document.getElementById('onboard-first-name');
+    const miInput = document.getElementById('onboard-mi');
+    const lNameInput = document.getElementById('onboard-last-name');
 
+    // Helper to force "Proper Case" (e.g. "DELA CRUZ" -> "Dela Cruz")
+    const formatProperName = (str) => {
+        if (!str) return "";
+        return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+    };
+
+    let firstName = "";
+    let mi = "";
+    let lastName = "";
+
+    // SMART NAME PARSER
+    if (displayName.includes(',')) {
+        const splitComma = displayName.split(',');
+        lastName = formatProperName(splitComma[0].trim());
+        
+        let givenParts = splitComma[1].trim().split(' ');
+        let lastGiven = givenParts[givenParts.length - 1];
+        
+        if (lastGiven && (lastGiven.length <= 2 || lastGiven.includes('.'))) {
+            mi = lastGiven.replace(/\./g, '').toUpperCase() + '.'; // Force uppercase and add dot
+            givenParts.pop(); 
+        }
+        firstName = formatProperName(givenParts.join(' '));
+        
+    } else {
+        let parts = displayName.split(' ');
+        let miIndex = parts.findIndex(p => (p.length === 2 && p.endsWith('.')) || p.length === 1);
+        
+        if (miIndex !== -1 && miIndex > 0 && miIndex < parts.length - 1) {
+            firstName = formatProperName(parts.slice(0, miIndex).join(' '));
+            mi = parts[miIndex].replace(/\./g, '').toUpperCase() + '.';
+            lastName = formatProperName(parts.slice(miIndex + 1).join(' '));
+        } else {
+            firstName = formatProperName(parts[0] || "");
+            lastName = formatProperName(parts.slice(1).join(' '));
+        }
+    }
+
+    fNameInput.value = firstName;
+    miInput.value = mi;
+    lNameInput.value = lastName;
+
+    // Auto-Capitalize and Auto-Dot the Middle Initial as the user types
+    miInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+    });
+
+    miInput.addEventListener('blur', (e) => {
+        let val = e.target.value.trim();
+        if (val) {
+            val = val.replace(/\./g, '') + '.';
+            e.target.value = val;
+        }
+    });
+
+    // Dropdown UI logic
     document.getElementById('user-type-select').addEventListener('change', (e) => {
         const wrapper = document.getElementById('onboard-college-wrapper');
         const collegeSelect = document.getElementById('college-select');
@@ -96,15 +150,24 @@ function setupOnboarding(user) {
         }
     });
 
+    // Save Button Logic
     document.getElementById('btn-save-profile').onclick = async () => {
-        const fullName = nameInput.value.trim();
+        const rawFirst = fNameInput.value.trim();
+        const rawMI = miInput.value.trim(); 
+        const rawLast = lNameInput.value.trim();
+        
         const uType = document.getElementById('user-type-select').value;
         const college = document.getElementById('college-select').value;
         
-        if (!fullName) return alert("Please enter your Full Name.");
-        if (!uType || !college) return alert("Please select your Role and College.");
+        // Strict Validation
+        if (!rawFirst || !rawLast) return alert("First Name and Last Name are required.");
+        if (!uType) return alert("Please select your Account Role.");
+        if (uType !== 'staff' && !college) return alert("Please select your College / Department.");
         
-        const finalCollege = college === 'N/A' ? 'University Office' : college;
+        // Final Database Name Stitching
+        const finalFullName = `${rawFirst} ${rawMI ? rawMI + ' ' : ''}${rawLast}`.trim();
+        const finalCollege = (uType === 'staff' || college === 'N/A') ? 'University Office' : college;
+        
         const saveBtn = document.getElementById('btn-save-profile');
         saveBtn.disabled = true;
         saveBtn.innerHTML = 'Saving... <i class="bi bi-hourglass-split ms-2"></i>';
@@ -112,12 +175,12 @@ function setupOnboarding(user) {
         try {
             await DB.createUser(user.uid, { 
                 email: user.email, 
-                name: fullName, 
+                name: finalFullName, 
                 collegeOrOffice: finalCollege,
                 userType: uType
             });
             
-            const activeSessionUser = { uid: user.uid, email: user.email, name: fullName, collegeOrOffice: finalCollege, userType: uType };
+            const activeSessionUser = { uid: user.uid, email: user.email, name: finalFullName, collegeOrOffice: finalCollege, userType: uType };
             UI.toggleSubSection('visit');
             setupVisitLogging(activeSessionUser);
             
