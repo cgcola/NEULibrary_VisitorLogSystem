@@ -37,16 +37,33 @@ export function initAuth(deviceRole) {
 async function handleManualRouting(user, deviceRole) {
     let userData = await DB.getUser(user.uid);
 
-    // DYNAMIC WHITELIST CHECK
-    // If they have no account yet, check the Firebase database whitelist!
+    // DYNAMIC WHITELIST CHECK & AUTO-CREATION
     if (!userData) {
         const dynamicWhitelist = await DB.getAdminWhitelist();
         
+        // Debugging logs so you can see if the whitelist is loading
+        console.log("Loaded VIP List:", dynamicWhitelist);
+        console.log("Current User:", user.email.toLowerCase());
+
         if (dynamicWhitelist.includes(user.email.toLowerCase())) {
-            // Silently create their Admin profile in the background
+            console.log("VIP Admin Detected! Bypassing registration...");
+
+            // 1. Fetch raw name from Google
+            let rawName = user.displayName || "Admin User";
+            
+            // 2. If it's reversed with a comma (Ola, Carl), flip it around
+            if (rawName.includes(',')) {
+                const parts = rawName.split(',');
+                rawName = `${parts[1].trim()} ${parts[0].trim()}`;
+            }
+            
+            // 3. Force Proper Casing (e.g. CARL -> Carl)
+            const cleanName = rawName.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+
+            // Silently create their Admin profile in the background using the clean name
             await DB.createUser(user.uid, { 
                 email: user.email, 
-                name: user.displayName || "Admin", 
+                name: cleanName, 
                 collegeOrOffice: "University Library",
                 userType: "staff",
                 role: "admin" 
@@ -57,7 +74,7 @@ async function handleManualRouting(user, deviceRole) {
         }
     }
 
-    // Normal Routing Logic
+    // Normal Routing Logic Continues
     if (!userData) {
         UI.showScreen('userFlow');
         UI.toggleSubSection('onboarding');
