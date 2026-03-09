@@ -13,10 +13,25 @@ export const DB = {
     async createUser(uid, data) {
         return await setDoc(doc(db, "users", uid), {
             isBlocked: false,
-            role: 'user',
+            role: 'user', // Default fallback role
             createdAt: serverTimestamp(),
-            ...data // 
+            ...data // 🚀 Moved to the bottom: This allows the dynamic whitelist to overwrite 'user' with 'admin'
         });
+    },
+
+    // Fetch the dynamic admin whitelist from Firestore
+    async getAdminWhitelist() {
+        try {
+            const snap = await getDoc(doc(db, "system_settings", "admin_config"));
+            if (snap.exists() && snap.data().whitelisted_emails) {
+                // Convert all emails to lowercase to prevent accidental capitalization mismatch
+                return snap.data().whitelisted_emails.map(email => email.toLowerCase());
+            }
+            return [];
+        } catch (error) {
+            console.error("Failed to load admin whitelist:", error);
+            return [];
+        }
     },
 
     async logVisit(visitData) {
@@ -41,13 +56,12 @@ export const DB = {
         }, { merge: true });
     },
 
-    // Updates a specific visit (Used for the 7:00 PM Auto-Close)
     async updateVisit(visitId, data) {
         const visitRef = doc(db, "visits", visitId);
         return await setDoc(visitRef, data, { merge: true });
     },
 
-    //Handles the 7:00 PM Auto Checkout
+    // Handles the 7:00 PM Auto Checkout
     async forceCheckoutAllActive() {
         const q = query(collection(db, "visits"), where("status", "==", "active"));
         const activeDocs = await getDocs(q);
@@ -64,7 +78,6 @@ export const DB = {
     },
 
     // ADMIN METHODS
-
     async getRecentVisits(maxResults = 1000) {
         const q = query(collection(db, "visits"), orderBy("timeIn", "desc"), limit(maxResults));
         const snap = await getDocs(q);
