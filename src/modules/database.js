@@ -12,10 +12,10 @@ export const DB = {
 
     async createUser(uid, data) {
         return await setDoc(doc(db, "users", uid), {
-            ...data,
             isBlocked: false,
             role: 'user',
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            ...data // 
         });
     },
 

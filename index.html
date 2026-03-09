@@ -190,7 +190,7 @@
                     <thead class="table-light sticky-top">
                         <tr>
                             <th class="text-muted border-0 py-3 text-center" style="width: 15%;">Action</th>
-                            <th class="text-muted border-0 py-3 text-center" style="width: 35%;">Name</th>
+                            <th class="text-muted border-0 py-3 text-start ps-3" style="width: 35%;">Name</th>
                             <th class="text-muted border-0 py-3 text-center" style="width: 15%;">Role</th>
                             <th class="text-muted border-0 py-3 text-center" style="width: 20%;">College/Dept</th>
                             <th class="text-muted border-0 py-3 text-center" style="width: 15%;">Time In</th>
@@ -238,8 +238,9 @@
 
             <div class="admin-sidebar-footer">
                 <div class="d-flex align-items-center mb-3 custom-profile-hover p-2 rounded-3">
-                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex justify-content-center align-items-center me-3 flex-shrink-0" style="width: 48px; height: 48px;">
-                        <i class="bi bi-person-fill fs-3 text-primary"></i>
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex justify-content-center align-items-center me-3 flex-shrink-0 overflow-hidden" style="width: 48px; height: 48px;">
+                        <img id="admin-profile-pic" src="" alt="Profile" class="w-100 h-100 d-none" style="object-fit: cover;">
+                        <i id="admin-profile-icon" class="bi bi-person-fill fs-3 text-primary"></i>
                     </div>
                     <div class="lh-sm overflow-hidden w-100">
                         <strong id="admin-user-name" class="d-block text-truncate fs-6 mb-1 text-dark">Carl Geneson Ola</strong>

@@ -35,8 +35,29 @@ export function initAuth(deviceRole) {
 }
 
 async function handleManualRouting(user, deviceRole) {
-    const userData = await DB.getUser(user.uid);
+    let userData = await DB.getUser(user.uid);
 
+    // DYNAMIC WHITELIST CHECK
+    // If they have no account yet, check the Firebase database whitelist!
+    if (!userData) {
+        const dynamicWhitelist = await DB.getAdminWhitelist();
+        
+        if (dynamicWhitelist.includes(user.email.toLowerCase())) {
+            // Silently create their Admin profile in the background
+            await DB.createUser(user.uid, { 
+                email: user.email, 
+                name: user.displayName || "Admin", 
+                collegeOrOffice: "University Library",
+                userType: "staff",
+                role: "admin" 
+            });
+            
+            // Re-fetch their newly minted admin profile
+            userData = await DB.getUser(user.uid);
+        }
+    }
+
+    // Normal Routing Logic
     if (!userData) {
         UI.showScreen('userFlow');
         UI.toggleSubSection('onboarding');
@@ -52,6 +73,16 @@ async function handleManualRouting(user, deviceRole) {
         if (deviceRole === 'admin') {
             if (userData.role === 'admin') {
                 document.getElementById('admin-user-name').innerText = userData.name || "Admin";
+                
+                const profilePic = document.getElementById('admin-profile-pic');
+                const profileIcon = document.getElementById('admin-profile-icon');
+                
+                if (user.photoURL && profilePic && profileIcon) {
+                    profilePic.src = user.photoURL;
+                    profilePic.classList.remove('d-none');
+                    profileIcon.classList.add('d-none'); 
+                }
+
                 UI.showScreen('admin');
                 initAdmin();
                 loadAdminDashboard();
@@ -82,7 +113,6 @@ function setupOnboarding(user) {
     const miInput = document.getElementById('onboard-mi');
     const lNameInput = document.getElementById('onboard-last-name');
 
-    // Helper to force "Proper Case" (e.g. "DELA CRUZ" -> "Dela Cruz")
     const formatProperName = (str) => {
         if (!str) return "";
         return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
@@ -92,7 +122,6 @@ function setupOnboarding(user) {
     let mi = "";
     let lastName = "";
 
-    // SMART NAME PARSER
     if (displayName.includes(',')) {
         const splitComma = displayName.split(',');
         lastName = formatProperName(splitComma[0].trim());
@@ -101,7 +130,7 @@ function setupOnboarding(user) {
         let lastGiven = givenParts[givenParts.length - 1];
         
         if (lastGiven && (lastGiven.length <= 2 || lastGiven.includes('.'))) {
-            mi = lastGiven.replace(/\./g, '').toUpperCase() + '.'; // Force uppercase and add dot
+            mi = lastGiven.replace(/\./g, '').toUpperCase() + '.'; 
             givenParts.pop(); 
         }
         firstName = formatProperName(givenParts.join(' '));
@@ -124,7 +153,6 @@ function setupOnboarding(user) {
     miInput.value = mi;
     lNameInput.value = lastName;
 
-    // Auto-Capitalize and Auto-Dot the Middle Initial as the user types
     miInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase();
     });
@@ -137,7 +165,6 @@ function setupOnboarding(user) {
         }
     });
 
-    // Dropdown UI logic
     document.getElementById('user-type-select').addEventListener('change', (e) => {
         const wrapper = document.getElementById('onboard-college-wrapper');
         const collegeSelect = document.getElementById('college-select');
@@ -150,7 +177,6 @@ function setupOnboarding(user) {
         }
     });
 
-    // Save Button Logic
     document.getElementById('btn-save-profile').onclick = async () => {
         const rawFirst = fNameInput.value.trim();
         const rawMI = miInput.value.trim(); 
@@ -159,12 +185,10 @@ function setupOnboarding(user) {
         const uType = document.getElementById('user-type-select').value;
         const college = document.getElementById('college-select').value;
         
-        // Strict Validation
         if (!rawFirst || !rawLast) return alert("First Name and Last Name are required.");
         if (!uType) return alert("Please select your Account Role.");
         if (uType !== 'staff' && !college) return alert("Please select your College / Department.");
         
-        // Final Database Name Stitching
         const finalFullName = `${rawFirst} ${rawMI ? rawMI + ' ' : ''}${rawLast}`.trim();
         const finalCollege = (uType === 'staff' || college === 'N/A') ? 'University Office' : college;
         
