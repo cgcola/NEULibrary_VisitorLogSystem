@@ -13,14 +13,23 @@ provider.setCustomParameters({
 export function initAuth(deviceRole) {
     document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
 
-    const handleLogout = async () => { await signOut(auth); location.reload(); };
+    const handleLogout = async () => { 
+        localStorage.removeItem('libraryDeviceRole'); 
+        await signOut(auth); 
+        location.reload(); 
+    };
+    
     const btnLogoutDesktop = document.getElementById('btn-logout');
     const btnLogoutMobile = document.getElementById('btn-logout-mobile');
     const btnChangeTerminal = document.getElementById('btn-change-terminal'); 
 
     if (btnLogoutDesktop) btnLogoutDesktop.onclick = handleLogout;
     if (btnLogoutMobile) btnLogoutMobile.onclick = handleLogout;
-    if (btnChangeTerminal) btnChangeTerminal.onclick = () => location.reload(); 
+    
+    if (btnChangeTerminal) btnChangeTerminal.onclick = () => {
+        localStorage.removeItem('libraryDeviceRole');
+        location.reload();
+    };
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -41,26 +50,21 @@ async function handleManualRouting(user, deviceRole) {
     if (!userData) {
         const dynamicWhitelist = await DB.getAdminWhitelist();
         
-        // Debugging logs so you can see if the whitelist is loading
         console.log("Loaded VIP List:", dynamicWhitelist);
         console.log("Current User:", user.email.toLowerCase());
 
         if (dynamicWhitelist.includes(user.email.toLowerCase())) {
             console.log("VIP Admin Detected! Bypassing registration...");
 
-            // Fetch raw name from Google
             let rawName = user.displayName || "Admin User";
             
-            // If it's reversed with a comma (Ola, Carl), flip it around
             if (rawName.includes(',')) {
                 const parts = rawName.split(',');
                 rawName = `${parts[1].trim()} ${parts[0].trim()}`;
             }
             
-            // Force Proper Casing (e.g. CARL -> Carl)
             const cleanName = rawName.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
 
-            // Silently create their Admin profile in the background using the clean name
             await DB.createUser(user.uid, { 
                 email: user.email, 
                 name: cleanName, 
@@ -69,7 +73,6 @@ async function handleManualRouting(user, deviceRole) {
                 role: "admin" 
             });
             
-            // Re-fetch their newly minted admin profile
             userData = await DB.getUser(user.uid);
         }
     }

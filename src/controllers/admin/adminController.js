@@ -4,6 +4,7 @@ import { initUsers } from './adminUsers.js';
 import { initReports } from './adminReports.js';
 
 let currentActiveLogView = 'student'; 
+let visitsListenerUnsubscribe = null;
 
 export function initAdmin() {
     setupNavLinks();
@@ -61,17 +62,21 @@ function setupNavLinks() {
 
 export async function loadAdminDashboard() {
     try {
-        // Fetch the safe, limited chunks of data
-        const recentVisitsCache = await DB.getRecentVisits(1000);
+        // Fetch static users data (doesn't need to be real-time)
         const initialUsersData = await DB.getUsersPaginated(50, null);
+        initUsers(initialUsersData.users, initialUsersData.lastDoc);
 
-        // Start the invisible 7:00 PM background watcher
-        startSmartClosingWatcher(recentVisitsCache);
+        // REAL-TIME STREAM for Visits
+        if (visitsListenerUnsubscribe) visitsListenerUnsubscribe();
 
-        // Distribute the safe data to the child modules
-        initOverview(recentVisitsCache); 
-        initUsers(initialUsersData.users, initialUsersData.lastDoc); // Pass users AND bookmark
-        initReports(recentVisitsCache); 
+        visitsListenerUnsubscribe = DB.listenToVisits((liveVisits) => {
+            console.log("Real-time Update Received.");
+            
+            initOverview(liveVisits); 
+            initReports(liveVisits); 
+            
+            startSmartClosingWatcher(liveVisits);
+        });
         
     } catch (e) { 
         console.error("Admin Load Error:", e); 
@@ -84,7 +89,6 @@ function startSmartClosingWatcher(visitsCache) {
     setInterval(async () => {
         const now = new Date();
         
-        // If the current time is exactly 19:00 (7:00 PM)
         if (now.getHours() === 19 && now.getMinutes() === 0) {
             
             const activeVisits = visitsCache.filter(v => v.status === 'active' || !v.timeOut);

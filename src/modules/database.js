@@ -1,7 +1,7 @@
 import { db } from '../config/firebase.js';
 import { 
     doc, getDoc, setDoc, addDoc, collection, 
-    serverTimestamp, query, orderBy, getDocs, where, limit, startAfter 
+    serverTimestamp, query, orderBy, getDocs, where, limit, startAfter, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export const DB = {
@@ -13,18 +13,16 @@ export const DB = {
     async createUser(uid, data) {
         return await setDoc(doc(db, "users", uid), {
             isBlocked: false,
-            role: 'user', // Default fallback role
+            role: 'user', 
             createdAt: serverTimestamp(),
-            ...data // 🚀 Moved to the bottom: This allows the dynamic whitelist to overwrite 'user' with 'admin'
+            ...data 
         });
     },
 
-    // Fetch the dynamic admin whitelist from Firestore
     async getAdminWhitelist() {
         try {
             const snap = await getDoc(doc(db, "system_settings", "admin_config"));
             if (snap.exists() && snap.data().whitelisted_emails) {
-                // Convert all emails to lowercase to prevent accidental capitalization mismatch
                 return snap.data().whitelisted_emails.map(email => email.toLowerCase());
             }
             return [];
@@ -32,6 +30,17 @@ export const DB = {
             console.error("Failed to load admin whitelist:", error);
             return [];
         }
+    },
+
+    // REAL-TIME LISTENER for Admin Dashboard
+    listenToVisits(callback) {
+        const q = query(collection(db, "visits"), orderBy("timeIn", "desc"), limit(1000));
+        return onSnapshot(q, (snapshot) => {
+            const visits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            callback(visits);
+        }, (error) => {
+            console.error("Live Stream Error:", error);
+        });
     },
 
     async logVisit(visitData) {
@@ -61,7 +70,6 @@ export const DB = {
         return await setDoc(visitRef, data, { merge: true });
     },
 
-    // Handles the 7:00 PM Auto Checkout
     async forceCheckoutAllActive() {
         const q = query(collection(db, "visits"), where("status", "==", "active"));
         const activeDocs = await getDocs(q);
@@ -71,27 +79,24 @@ export const DB = {
             promises.push(setDoc(visitRef, {
                 status: 'completed',
                 timeOut: serverTimestamp(),
-                autoClosed: true // Marks that this was done by the admin, not the user
+                autoClosed: true 
             }, { merge: true }));
         });
         return await Promise.all(promises);
     },
 
-    // ADMIN METHODS
     async getRecentVisits(maxResults = 1000) {
         const q = query(collection(db, "visits"), orderBy("timeIn", "desc"), limit(maxResults));
         const snap = await getDocs(q);
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     },
 
-    // Use only for CSV Exports. Will consume massive read quotas!
     async getAllVisitsForExport() {
         const q = query(collection(db, 'visits'), orderBy('timeIn', 'desc'));
         const snap = await getDocs(q);
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     },
 
-    // Smart Filter & Search Query for Users with Pagination
     async getUsersPaginated(maxResults = 50, lastDoc = null, filters = {}) {
         try {
             let conditions = [];
@@ -103,7 +108,6 @@ export const DB = {
                 conditions.push(where('collegeOrOffice', '==', filters.college));
             }
             if (filters.search) {
-                // \uf8ff acts like a wildcard for prefix matching
                 conditions.push(where('name', '>=', filters.search));
                 conditions.push(where('name', '<=', filters.search + '\uf8ff'));
             }

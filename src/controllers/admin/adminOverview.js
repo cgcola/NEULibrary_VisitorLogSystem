@@ -7,7 +7,6 @@ let activityChartInstance = null;
 let currentVisits = [];
 let isFilterSetup = false;
 
-// Dictionary for standardizing chart labels
 const activityMap = {
     "Reading": "Reading Books",
     "Research": "Thesis Work",
@@ -17,51 +16,18 @@ const activityMap = {
 };
 
 export function initOverview(visits) {
+    // Update the global array with the FRESH LIVE DATA
     currentVisits = visits;
     
+    // Only setup the event listeners ONCE when the app first loads
     if (!isFilterSetup) {
         setupDashboardFilters();
+        setupForceCloseBtn();
         isFilterSetup = true;
     }
 
-    // SMART 7:00 PM AUTO-CLOSE HOOK
-    const btnForceClose = document.getElementById('btn-force-close');
-    if (btnForceClose) {
-        btnForceClose.onclick = async () => {
-            // Find all visitors currently active (missing timeOut or marked active)
-            const activeVisits = currentVisits.filter(v => v.status === 'active' || !v.timeOut);
-            
-            if (activeVisits.length === 0) {
-                return alert("There are no active sessions to close!");
-            }
-
-            if (confirm(`Are you sure you want to force-close ${activeVisits.length} active session(s)?\n\nThey will be stamped with a sign-out time of exactly 7:00 PM on the day they checked in.`)) {
-                btnForceClose.disabled = true;
-                btnForceClose.innerHTML = '<i class="bi bi-hourglass-split"></i> Closing...';
-
-                for (const visit of activeVisits) {
-                    // Extract the check-in time (handling Firebase Timestamps)
-                    const checkInTime = visit.timeIn && typeof visit.timeIn.toDate === 'function' 
-                        ? visit.timeIn.toDate() 
-                        : new Date(visit.timeIn);
-                    
-                    // Create the strict 7:00 PM timestamp for the specific day they visited
-                    const forcedOutTime = new Date(checkInTime);
-                    forcedOutTime.setHours(19, 0, 0, 0);
-
-                    // Update the specific document in the database
-                    await DB.updateVisit(visit.id, {
-                        timeOut: forcedOutTime,
-                        status: 'completed'
-                    });
-                }
-                
-                // Refresh all data cleanly on the dashboard
-                loadAdminDashboard(); 
-            }
-        }
-    }
-
+    // Automatically re-render the charts/tables using the NEW data 
+    // while respecting whatever date filter the Admin currently has selected!
     const periodFilter = document.getElementById('dashboard-period-filter');
     const val = periodFilter ? periodFilter.value : 'today';
     
@@ -75,6 +41,42 @@ export function initOverview(visits) {
         }
     } else {
         renderOverview(val);
+    }
+}
+
+function setupForceCloseBtn() {
+    const btnForceClose = document.getElementById('btn-force-close');
+    if (btnForceClose) {
+        btnForceClose.onclick = async () => {
+            const activeVisits = currentVisits.filter(v => v.status === 'active' || !v.timeOut);
+            
+            if (activeVisits.length === 0) {
+                return alert("There are no active sessions to close!");
+            }
+
+            if (confirm(`Are you sure you want to force-close ${activeVisits.length} active session(s)?\n\nThey will be stamped with a sign-out time of exactly 7:00 PM on the day they checked in.`)) {
+                btnForceClose.disabled = true;
+                btnForceClose.innerHTML = '<i class="bi bi-hourglass-split"></i> Closing...';
+
+                for (const visit of activeVisits) {
+                    const checkInTime = visit.timeIn && typeof visit.timeIn.toDate === 'function' 
+                        ? visit.timeIn.toDate() 
+                        : new Date(visit.timeIn);
+                    
+                    const forcedOutTime = new Date(checkInTime);
+                    forcedOutTime.setHours(19, 0, 0, 0);
+
+                    await DB.updateVisit(visit.id, {
+                        timeOut: forcedOutTime,
+                        status: 'completed'
+                    });
+                }
+                
+                // Reset button UI
+                btnForceClose.disabled = false;
+                btnForceClose.innerHTML = '<i class="bi bi-power"></i> Auto-Close (7PM)';
+            }
+        }
     }
 }
 
@@ -154,7 +156,6 @@ function renderOverview(period = 'today', customStart = null, customEnd = null) 
         const col = v.college || 'Unknown';
         collegeCounts[col] = (collegeCounts[col] || 0) + 1;
         
-        // Map activities to chart
         if (v.reasons && Array.isArray(v.reasons)) {
             v.reasons.forEach(r => {
                 const actName = activityMap[r] || r;
@@ -178,7 +179,6 @@ function renderOverview(period = 'today', customStart = null, customEnd = null) 
     Chart.defaults.color = '#6c757d'; 
     Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
 
-    // Render College Doughnut Chart
     const ctxCol = document.getElementById('collegeChart').getContext('2d');
     if (collegeChartInstance) collegeChartInstance.destroy(); 
     collegeChartInstance = new Chart(ctxCol, {
@@ -187,7 +187,6 @@ function renderOverview(period = 'today', customStart = null, customEnd = null) 
         options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom' } } }
     });
 
-    // Render New Activities Chart (Pie)
     const ctxAct = document.getElementById('activitiesChart').getContext('2d');
     if (activityChartInstance) activityChartInstance.destroy(); 
     activityChartInstance = new Chart(ctxAct, {
@@ -196,7 +195,6 @@ function renderOverview(period = 'today', customStart = null, customEnd = null) 
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
     });
 
-    // Render Trend Line Chart
     const ctxTrend = document.getElementById('trendChart').getContext('2d');
     if (trendChartInstance) trendChartInstance.destroy();
     trendChartInstance = new Chart(ctxTrend, {
@@ -207,7 +205,11 @@ function renderOverview(period = 'today', customStart = null, customEnd = null) 
 
     const recentTable = document.getElementById('recent-logs-table');
     recentTable.innerHTML = '';
-    filteredVisits.slice(0, 8).forEach(v => {
+    
+    // Sort so newest is at the top
+    const sortedVisits = [...filteredVisits].sort((a,b) => b.timeIn.toMillis() - a.timeIn.toMillis());
+    
+    sortedVisits.slice(0, 8).forEach(v => {
         const time = v.timeIn ? v.timeIn.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
         const role = v.userType ? v.userType.toUpperCase() : 'STUDENT';
         recentTable.innerHTML += `<tr><td class="fw-bold text-dark">${v.name || v.email}</td><td><span class="badge bg-secondary">${role}</span></td><td>${v.college}</td><td class="text-primary fw-medium">${time}</td></tr>`;

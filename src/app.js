@@ -2,23 +2,27 @@ import { UI } from './modules/ui.js';
 import { initAuth } from './controllers/authController.js';
 import { initEntrance } from './controllers/entranceTerminal.js';
 import { initExit } from './controllers/exitTerminal.js';
-import { auth } from './config/firebase.js'; 
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; 
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Force a clean slate whenever the main setup screen loads
-    try {
-        await signOut(auth);
-    } catch (e) {
-        console.log("No active session to clear.");
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if this device already has an assigned role saved in storage
+    const savedRole = localStorage.getItem('libraryDeviceRole');
+
+    if (savedRole) {
+        console.log("Restoring terminal session:", savedRole);
+        restoreTerminalSession(savedRole);
+    } else {
+        // No role saved, show the initial choice screen
+        UI.showScreen('deviceSetup');
     }
-
-    // Show the device setup screen by default on load
-    UI.showScreen('deviceSetup');
 
     // GLOBALLY activate all "Change Terminal" (gear) buttons
     document.querySelectorAll('.btn-reset-device').forEach(btn => {
-        btn.onclick = () => location.reload();
+        btn.onclick = () => {
+            if(confirm("Change terminal role? This will require a new login.")) {
+                localStorage.removeItem('libraryDeviceRole');
+                location.reload();
+            }
+        };
     });
 
     // Setup button listeners for terminal roles
@@ -28,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnEntrance) {
         btnEntrance.onclick = () => {
+            localStorage.setItem('libraryDeviceRole', 'entrance');
             initEntrance();      
             initAuth('entrance'); 
         };
@@ -35,14 +40,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnExit) {
         btnExit.onclick = () => {
+            localStorage.setItem('libraryDeviceRole', 'exit');
             initExit(); 
         };
     }
 
     if (btnAdmin) {
         btnAdmin.onclick = () => {
+            localStorage.setItem('libraryDeviceRole', 'admin');
             UI.showScreen('login');
             initAuth('admin'); 
         };
     }
 });
+
+// Helper to bypass the setup screen on reload
+function restoreTerminalSession(role) {
+    if (role === 'entrance') {
+        initEntrance();
+        initAuth('entrance');
+    } else if (role === 'exit') {
+        initExit();
+    } else if (role === 'admin') {
+        UI.showScreen('login');
+        initAuth('admin');
+    }
+}
