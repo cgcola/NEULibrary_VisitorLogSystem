@@ -84,13 +84,27 @@ export async function loadAdminDashboard() {
     }
 }
 
-// SMART 7:00 PM BACKGROUND TIMER
+// SMART BACKGROUND TIMER (Schedule Aware!)
 function startSmartClosingWatcher(visitsCache) {
     setInterval(async () => {
         const now = new Date();
+        const day = now.getDay();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
         
-        if (now.getHours() === 19 && now.getMinutes() === 0) {
-            
+        let isClosingTime = false;
+        
+        // M/T/W/F: Trigger exact auto-close at 7:00 PM (19:00)
+        if ((day === 1 || day === 2 || day === 3 || day === 5) && hour === 19 && minute === 0) {
+            isClosingTime = true;
+        }
+        // TH/S: Trigger exact auto-close at 6:00 PM (18:00)
+        else if ((day === 4 || day === 6) && hour === 18 && minute === 0) {
+            isClosingTime = true;
+        }
+
+        // If the clock strikes closing time, sweep the database!
+        if (isClosingTime) {
             const activeVisits = visitsCache.filter(v => v.status === 'active' || !v.timeOut);
             
             if (activeVisits.length > 0) {
@@ -100,15 +114,16 @@ function startSmartClosingWatcher(visitsCache) {
                         : new Date(visit.timeIn);
                     
                     const forcedOutTime = new Date(checkInTime);
-                    forcedOutTime.setHours(19, 0, 0, 0); 
+                    forcedOutTime.setHours(hour, 0, 0, 0); // Sets to either 19:00 or 18:00 based on the current hour check
 
                     await DB.updateVisit(visit.id, {
                         timeOut: forcedOutTime,
-                        status: 'completed' 
+                        status: 'completed',
+                        autoClosed: true // Helpful flag so you know the system forced them out
                     });
                 }
                 location.reload(); 
             }
         }
-    }, 60000);
+    }, 60000); // Checks the clock once every 60 seconds
 }

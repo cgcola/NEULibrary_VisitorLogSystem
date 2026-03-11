@@ -2,6 +2,7 @@ import { auth, provider } from '../config/firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { UI } from '../modules/ui.js';
 import { DB } from '../modules/database.js';
+import { showCenteredAlert } from '../app.js';
 import { setupVisitLogging } from './entranceTerminal.js';
 import { initAdmin, loadAdminDashboard } from './admin/adminController.js';
 
@@ -34,8 +35,8 @@ export function initAuth(deviceRole) {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             if (!user.email.endsWith("@neu.edu.ph")) {
-                alert("Institutional Email Only!");
                 await signOut(auth);
+                showCenteredAlert('Invalid Email', 'Only @neu.edu.ph institutional emails are allowed to access this system.', 'bi-envelope-x-fill');
                 return;
             }
             handleManualRouting(user, deviceRole);
@@ -84,9 +85,9 @@ async function handleManualRouting(user, deviceRole) {
         setupOnboarding(user);
     } else {
         if (userData.isBlocked) { 
-            alert("ACCESS DENIED: Account Blocked."); 
             await signOut(auth); 
             UI.showScreen('login');
+            showCenteredAlert('Account Blocked', 'Your access to the library system has been restricted. Please speak with the head librarian.', 'bi-person-fill-slash');
             return; 
         }
 
@@ -108,8 +109,11 @@ async function handleManualRouting(user, deviceRole) {
                 loadAdminDashboard();
             } else {
                 await signOut(auth); 
-                alert("⚠️ ACCESS DENIED\n\nYou do not have Administrator privileges for this portal.\n\nIf you are trying to log inside the library to study or read, please click the gear icon to return to the main menu and select 'ENTRANCE'.");
-                location.reload(); 
+                showCenteredAlert(
+                    'Access Denied', 
+                    'Admin privileges are required to access this dashboard. If you are a student, please use the Entrance Terminal.',
+                    'bi-shield-lock-fill'
+                );
             }
         } 
         else if (deviceRole === 'entrance') {
@@ -205,9 +209,9 @@ function setupOnboarding(user) {
         const uType = document.getElementById('user-type-select').value;
         const college = document.getElementById('college-select').value;
         
-        if (!rawFirst || !rawLast) return alert("First Name and Last Name are required.");
-        if (!uType) return alert("Please select your Account Role.");
-        if (uType !== 'staff' && !college) return alert("Please select your College / Department.");
+        if (!rawFirst || !rawLast) return showCenteredAlert("Missing Information", "First Name and Last Name are required.", "bi-exclamation-triangle-fill");
+        if (!uType) return showCenteredAlert("Missing Information", "Please select your Account Role.", "bi-exclamation-triangle-fill");
+        if (uType !== 'staff' && !college) return showCenteredAlert("Missing Information", "Please select your College / Department.", "bi-exclamation-triangle-fill");
         
         const finalFullName = `${rawFirst} ${rawMI ? rawMI + ' ' : ''}${rawLast}`.trim();
         const finalCollege = (uType === 'staff' || college === 'N/A') ? 'University Office' : college;
@@ -233,7 +237,7 @@ function setupOnboarding(user) {
             
         } catch(e) {
             console.error(e);
-            alert("Error saving profile.");
+            showCenteredAlert("Error", "Error saving profile to the database.", "bi-x-octagon-fill");
             saveBtn.disabled = false;
             saveBtn.innerHTML = 'Save & Continue <i class="bi bi-arrow-right ms-2"></i>';
         }

@@ -5,7 +5,7 @@ import { initExit } from './controllers/exitTerminal.js';
 import { auth } from './config/firebase.js'; 
 import { signOut } from 'firebase/auth'; 
 
-// Check if library is currently open
+// Helper: Check if library is currently open
 export function isLibraryOpen() {
     const now = new Date();
     const day = now.getDay();
@@ -19,68 +19,77 @@ export function isLibraryOpen() {
     return false; // Sunday
 }
 
-// 🚀 NEW: Inject a beautiful error message onto the screen
-export function showInlineError(containerId, message) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        // Fallback just in case the ID is slightly different in your HTML
-        alert(message.replace(/<br>/g, '\n'));
-        return;
-    }
+// 🚀 PREMIUM UI: Centered Modal Overlay
+export function showCenteredAlert(title, message, icon = 'bi-shield-lock-fill') {
+    // Remove any existing modal to prevent stacking
+    const existing = document.getElementById('premium-overlay-modal');
+    if (existing) existing.remove();
 
-    // Remove any existing error message so they don't stack up infinitely
-    const existingError = container.querySelector('.custom-inline-error');
-    if (existingError) existingError.remove();
-
-    const alertHtml = `
-        <div class="custom-inline-error alert alert-danger alert-dismissible fade show mt-4 shadow-sm text-start" role="alert" style="max-width: 500px; margin: 0 auto; border-left: 5px solid #dc3545;">
-            <strong><i class="bi bi-exclamation-octagon-fill me-2"></i>Access Denied</strong><br>
-            <span class="small">${message}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    const modalHtml = `
+        <div id="premium-overlay-modal" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
+             style="background: rgba(0, 0, 0, 0.5); z-index: 9999; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.3s ease;">
+            <div class="bg-white p-5 rounded-4 shadow-lg text-center mx-3 border-top border-danger border-5" 
+                 style="max-width: 450px; transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" id="premium-modal-card">
+                <i class="bi ${icon} text-danger mb-3 d-block" style="font-size: 4rem;"></i>
+                <h3 class="fw-bold text-dark mb-3">${title}</h3>
+                <p class="text-secondary mb-4" style="font-size: 1.1rem; line-height: 1.6;">${message}</p>
+                <button class="btn btn-danger btn-lg px-5 rounded-pill fw-bold shadow-sm" id="btn-close-modal">Understood</button>
+            </div>
         </div>
     `;
     
-    container.insertAdjacentHTML('beforeend', alertHtml);
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const overlay = document.getElementById('premium-overlay-modal');
+    const card = document.getElementById('premium-modal-card');
+    const closeBtn = document.getElementById('btn-close-modal');
+
+    // Trigger smooth fade-in and bounce animation
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+        card.style.transform = 'scale(1)';
+    }, 10);
+
+    // Smooth fade-out and remove on close
+    closeBtn.onclick = () => {
+        overlay.style.opacity = '0';
+        card.style.transform = 'scale(0.8)';
+        setTimeout(() => overlay.remove(), 300);
+    };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if this device already has an assigned role saved in storage
     const savedRole = localStorage.getItem('libraryDeviceRole');
 
     if (savedRole) {
-        console.log("Restoring terminal session:", savedRole);
         restoreTerminalSession(savedRole);
     } else {
-        // No role saved, show the initial choice screen
         UI.showScreen('deviceSetup');
     }
 
     // Globally activate all "Change Terminal" (gear) buttons
     document.body.addEventListener('click', (e) => {
-        // Find if the clicked element (or its parent) is the reset button
         const resetBtn = e.target.closest('.btn-reset-device') || e.target.closest('#btn-change-terminal');
-        
         if (resetBtn) {
             e.preventDefault();
             localStorage.removeItem('libraryDeviceRole');
-            location.reload(); // Instantly go back to the landing page
+            location.reload(); 
         }
     });
 
-    // Setup button listeners for terminal roles
     const btnEntrance = document.getElementById('set-entrance');
     const btnExit = document.getElementById('set-exit');
     const btnAdmin = document.getElementById('set-admin');
 
+    const closedMessage = `The library is currently closed.<br><br><strong>Operating Hours:</strong><br>M/T/W/F: 7:00 AM - 7:00 PM<br>TH/S: 7:00 AM - 6:00 PM`;
+
     if (btnEntrance) {
         btnEntrance.onclick = (e) => {
-            // Time Shield
             if (!isLibraryOpen()) {
-                e.preventDefault(); // Stop them from clicking
-                showInlineError('deviceSetup', 'The library is currently closed. Operating Hours:<br>M/T/W/F: 7:00 AM - 7:00 PM<br>TH/S: 7:00 AM - 6:00 PM');
+                e.preventDefault();
+                showCenteredAlert('Library Closed', closedMessage, 'bi-clock-fill');
                 return;
             }
-
             localStorage.setItem('libraryDeviceRole', 'entrance');
             initEntrance();      
             initAuth('entrance'); 
@@ -88,7 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnExit) {
-        btnExit.onclick = () => {
+        btnExit.onclick = (e) => {
+            // Time Shield applied to Exit Button!
+            if (!isLibraryOpen()) {
+                e.preventDefault();
+                showCenteredAlert('Library Closed', closedMessage, 'bi-clock-fill');
+                return;
+            }
             localStorage.setItem('libraryDeviceRole', 'exit');
             initExit(); 
         };
@@ -103,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Helper to bypass the setup screen on reload
 function restoreTerminalSession(role) {
     if (role === 'entrance') {
         initEntrance();
