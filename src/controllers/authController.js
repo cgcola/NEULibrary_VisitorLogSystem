@@ -119,7 +119,7 @@ async function handleManualRouting(user, deviceRole) {
                 // Return to landing page if a student tries to access admin
                 showCenteredAlert(
                     'Access Denied', 
-                    'Admin privileges are required to access this dashboard. If you are a student, please use the Entrance Terminal.',
+                    'Admin privileges are required to access this dashboard. If you are entering the library, please use the Entrance Terminal.',
                     'bi-shield-lock-fill',
                     () => {
                         localStorage.removeItem('libraryDeviceRole');
