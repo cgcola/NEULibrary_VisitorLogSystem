@@ -1,23 +1,19 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
-// FIREBASE CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyBirK2ffc7QbuxwPs6qnerV2jdQlqVaovw",
-  authDomain: "neu-library-system-52872.firebaseapp.com",
-  projectId: "neu-library-system-52872",
-  storageBucket: "neu-library-system-52872.firebasestorage.app",
-  messagingSenderId: "528494418690",
-  appId: "1:528494418690:web:31e9f8f1b20884b338c01b",
-  measurementId: "G-DL5RCM3JTC"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const provider = new GoogleAuthProvider();
-
-provider.setCustomParameters({ hd: "neu.edu.ph" });
+export { auth, db, provider };

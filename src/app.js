@@ -2,6 +2,8 @@ import { UI } from './modules/ui.js';
 import { initAuth } from './controllers/authController.js';
 import { initEntrance } from './controllers/entranceTerminal.js';
 import { initExit } from './controllers/exitTerminal.js';
+import { auth } from './config/firebase.js'; 
+import { signOut } from 'firebase/auth'; 
 
 document.addEventListener('DOMContentLoaded', () => {
     // Check if this device already has an assigned role saved in storage
@@ -16,13 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Globally activate all "Change Terminal" (gear) buttons
-    document.querySelectorAll('.btn-reset-device').forEach(btn => {
-        btn.onclick = () => {
-            if(confirm("Change terminal role? This will require a new login.")) {
-                localStorage.removeItem('libraryDeviceRole');
-                location.reload();
-            }
-        };
+    document.body.addEventListener('click', (e) => {
+        // Find if the clicked element (or its parent) is the reset button
+        const resetBtn = e.target.closest('.btn-reset-device') || e.target.closest('#btn-change-terminal');
+        
+        if (resetBtn) {
+            e.preventDefault();
+            localStorage.removeItem('libraryDeviceRole');
+            location.reload(); // Instantly go back to the landing page
+        }
     });
 
     // Setup button listeners for terminal roles

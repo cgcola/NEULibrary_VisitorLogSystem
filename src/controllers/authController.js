@@ -1,5 +1,5 @@
 import { auth, provider } from '../config/firebase.js';
-import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { UI } from '../modules/ui.js';
 import { DB } from '../modules/database.js';
 import { setupVisitLogging } from './entranceTerminal.js';

@@ -1,0 +1,29 @@
+{
+  "name": "neu-library-system",
+  "version": "1.0.0",
+  "description": "A modern, paperless, and real-time visitor management system designed for the New Era University (NEU) Library. This full-stack web application replaces traditional handwritten logbooks with a streamlined digital kiosk experience, featuring Google Workspace authentication, automated time-tracking, and a powerful administrative analytics dashboard.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cgcola/NEULibrary_VisitorLogSystem.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cgcola/NEULibrary_VisitorLogSystem/issues"
+  },
+  "homepage": "https://github.com/cgcola/NEULibrary_VisitorLogSystem#readme",
+  "devDependencies": {
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "firebase": "^12.10.0"
+  }
+}

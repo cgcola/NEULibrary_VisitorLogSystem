@@ -2,7 +2,8 @@ import { db } from '../config/firebase.js';
 import { 
     doc, getDoc, setDoc, addDoc, collection, 
     serverTimestamp, query, orderBy, getDocs, where, limit, startAfter, onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from 'firebase/firestore';
+
 
 export const DB = {
     async getUser(uid) {
@@ -80,9 +81,21 @@ export const DB = {
 
     async checkoutVisit(visitId) {
         const visitRef = doc(db, "visits", visitId);
+        
+        const now = new Date();
+        let finalTimeOut = serverTimestamp(); // Default to exact current time
+
+        // If they sign out at 7:00 PM (19:00) or later...
+        if (now.getHours() >= 19) {
+            // Force the time stamp to be exactly 7:00 PM of today
+            const cappedTime = new Date();
+            cappedTime.setHours(19, 0, 0, 0);
+            finalTimeOut = cappedTime;
+        }
+
         return await setDoc(visitRef, {
             status: 'completed',
-            timeOut: serverTimestamp()
+            timeOut: finalTimeOut // Uses the exact time, OR the 7PM capped time
         }, { merge: true });
     },
 
