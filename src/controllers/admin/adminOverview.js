@@ -16,17 +16,17 @@ const activityMap = {
 };
 
 export function initOverview(visits) {
-    // Update the global array with the FRESH LIVE DATA
+    // Update the global array with the live data
     currentVisits = visits;
     
-    // Only setup the event listeners ONCE when the app first loads
+    // Only setup the event listeners once when the app first loads
     if (!isFilterSetup) {
         setupDashboardFilters();
         setupForceCloseBtn();
         isFilterSetup = true;
     }
 
-    // Automatically re-render the charts/tables using the NEW data 
+    // Automatically re-render the charts/tables using the new data 
     // while respecting whatever date filter the Admin currently has selected!
     const periodFilter = document.getElementById('dashboard-period-filter');
     const val = periodFilter ? periodFilter.value : 'today';

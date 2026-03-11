@@ -32,6 +32,27 @@ export const DB = {
         }
     },
 
+    // 🚀 NEW: Fetch history for a specific user and sort locally to avoid index errors
+    async getUserVisitHistory(email) {
+        try {
+            const q = query(collection(db, "visits"), where("email", "==", email));
+            const snap = await getDocs(q);
+            
+            let visits = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            visits.sort((a, b) => {
+                const timeA = a.timeIn ? a.timeIn.toMillis() : 0;
+                const timeB = b.timeIn ? b.timeIn.toMillis() : 0;
+                return timeB - timeA;
+            });
+
+            return visits;
+        } catch (error) {
+            console.error("Error fetching user history:", error);
+            return [];
+        }
+    },
+
     // REAL-TIME LISTENER for Admin Dashboard
     listenToVisits(callback) {
         const q = query(collection(db, "visits"), orderBy("timeIn", "desc"), limit(1000));

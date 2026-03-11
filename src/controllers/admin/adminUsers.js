@@ -121,17 +121,34 @@ function renderUsersTable(users) {
         const btnText = isBlocked ? 'Unblock' : 'Block';
         const roleStr = u.userType ? u.userType.toUpperCase() : 'STUDENT';
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+        // 1. Create the Main User Row
+        const trMain = document.createElement('tr');
+        trMain.innerHTML = `
             <td class="fw-bold text-dark">${u.name || 'N/A'}</td>
             <td>${u.email}</td>
             <td><span class="badge bg-secondary">${roleStr}</span></td>
             <td>${u.collegeOrOffice || 'N/A'}</td>
             <td>${statusBadge}</td>
             <td class="text-end">
+                <button class="btn btn-sm btn-outline-info px-2 me-1 btn-view-history" data-uid="${u.id}" data-email="${u.email}" title="View History">
+                    <i class="bi bi-clock-history"></i>
+                </button>
                 <button class="btn btn-sm ${btnClass} px-3 fw-bold btn-toggle-block" data-uid="${u.id}" data-blocked="${isBlocked}">${btnText}</button>
             </td>`;
-        list.appendChild(tr);
+        
+        // 2. Create the Hidden History Dropdown Row
+        const trHistory = document.createElement('tr');
+        trHistory.id = `history-row-${u.id}`;
+        trHistory.classList.add('d-none'); // Hidden by default
+        trHistory.innerHTML = `
+            <td colspan="6" class="p-0 border-0 bg-light">
+                <div class="p-3 shadow-inner border-bottom border-info border-3" style="max-height: 350px; overflow-y: auto;" id="history-content-${u.id}">
+                    <div class="text-center text-muted small py-3"><i class="bi bi-hourglass-split"></i> Loading history...</div>
+                </div>
+            </td>`;
+
+        list.appendChild(trMain);
+        list.appendChild(trHistory);
     });
 
     // Re-attach logic using delegation or direct attachment
@@ -145,9 +162,80 @@ function renderUsersTable(users) {
                 
                 await DB.toggleBlockStatus(uid, !isCurrentlyBlocked);
                 
-                // Refresh the specific search to update the UI
                 triggerNewDatabaseSearch(); 
             }
+        };
+    });
+
+    // View History Logic
+    list.querySelectorAll('.btn-view-history').forEach(btn => {
+        btn.onclick = async (e) => {
+            const targetBtn = e.target.closest('button');
+            const uid = targetBtn.dataset.uid;
+            const email = targetBtn.dataset.email;
+            
+            const historyRow = document.getElementById(`history-row-${uid}`);
+            const contentDiv = document.getElementById(`history-content-${uid}`);
+
+            if (!historyRow.classList.contains('d-none')) {
+                historyRow.classList.add('d-none');
+                targetBtn.classList.replace('btn-info', 'btn-outline-info');
+                targetBtn.classList.remove('text-white');
+                return; 
+            }
+
+            historyRow.classList.remove('d-none');
+            targetBtn.classList.replace('btn-outline-info', 'btn-info');
+            targetBtn.classList.add('text-white');
+
+            const userHistory = await DB.getUserVisitHistory(email);
+
+            if (userHistory.length === 0) {
+                contentDiv.innerHTML = `<div class="text-center text-muted small py-3"><i class="bi bi-info-circle"></i> No visit history found for this user.</div>`;
+                return;
+            }
+
+            let historyHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+                    <span class="fw-bold text-dark"><i class="bi bi-journal-text me-2"></i>Visit History</span>
+                    <span class="badge bg-primary rounded-pill">Total Visits: ${userHistory.length}</span>
+                </div>
+                <table class="table table-sm table-bordered bg-white mb-0" style="font-size: 0.85rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Services / Reasons</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            userHistory.forEach(visit => {
+                const dateIn = visit.timeIn ? visit.timeIn.toDate().toLocaleDateString() : 'N/A';
+                const timeIn = visit.timeIn ? visit.timeIn.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+                const timeOut = visit.timeOut ? visit.timeOut.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '<span class="text-success fw-bold">Active Now</span>';
+                
+                let services = "N/A";
+                if (visit.reasons && Array.isArray(visit.reasons)) {
+                    services = visit.reasons.join(', ');
+                } else if (visit.reasons) {
+                    services = visit.reasons;
+                }
+
+                historyHTML += `
+                    <tr>
+                        <td class="fw-medium">${dateIn}</td>
+                        <td class="text-primary">${timeIn}</td>
+                        <td class="text-secondary">${timeOut}</td>
+                        <td>${services}</td>
+                    </tr>
+                `;
+            });
+
+            historyHTML += `</tbody></table>`;
+            contentDiv.innerHTML = historyHTML;
         };
     });
 }

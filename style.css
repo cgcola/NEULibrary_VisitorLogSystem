@@ -1,6 +1,5 @@
-/* =========================================
-   GLOBAL UNIFIED THEME
-   ========================================= */
+/* Global Unified Theme */
+
 :root {
     --primary-color: #0d6efd;       
     --primary-light: #e7f1ff;       
@@ -31,9 +30,7 @@ body, html {
 }
 .d-none { display: none !important; }
 
-/* =========================================
-   TERMINALS (CREATIVE & MODERN)
-   ========================================= */
+/* Terminals */
 .terminal-layout {
     background-color: #f4f7f6;
     background-image: 
@@ -95,9 +92,7 @@ body, html {
 }
 
 
-/* =========================================
-   ADMIN DASHBOARD (Strict Fixed Shell)
-   ========================================= */
+/* Aadmin Dashboard (Strict Fixed Shell) */
 #admin-wrapper.d-flex {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -226,9 +221,7 @@ body, html {
     box-shadow: 0 0 0 4px var(--primary-light);
 }
 
-/* =========================================
-   MOBILE RESPONSIVENESS
-   ========================================= */
+/* Mobile Responsiveness */
 @media (max-width: 767.98px) {
     #admin-wrapper.d-flex {
         flex-direction: column !important;
@@ -253,9 +246,7 @@ body, html {
     }
 }
 
-/* =========================================
-   ANIMATIONS
-   ========================================= */
+/* Animations */
 .fade-in-up {
     animation: fadeInUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
 }

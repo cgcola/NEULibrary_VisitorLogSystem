@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         UI.showScreen('deviceSetup');
     }
 
-    // GLOBALLY activate all "Change Terminal" (gear) buttons
+    // Globally activate all "Change Terminal" (gear) buttons
     document.querySelectorAll('.btn-reset-device').forEach(btn => {
         btn.onclick = () => {
             if(confirm("Change terminal role? This will require a new login.")) {
