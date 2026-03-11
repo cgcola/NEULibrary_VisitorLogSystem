@@ -19,8 +19,8 @@ export function isLibraryOpen() {
     return false; // Sunday
 }
 
-// 🚀 PREMIUM UI: Centered Modal Overlay
-export function showCenteredAlert(title, message, icon = 'bi-shield-lock-fill') {
+// Centered Modal Overlay (With a callback feature)
+export function showCenteredAlert(title, message, icon = 'bi-shield-lock-fill', onCloseCallback = null) {
     // Remove any existing modal to prevent stacking
     const existing = document.getElementById('premium-overlay-modal');
     if (existing) existing.remove();
@@ -54,7 +54,11 @@ export function showCenteredAlert(title, message, icon = 'bi-shield-lock-fill') 
     closeBtn.onclick = () => {
         overlay.style.opacity = '0';
         card.style.transform = 'scale(0.8)';
-        setTimeout(() => overlay.remove(), 300);
+        setTimeout(() => {
+            overlay.remove();
+            // Run the callback if one was provided!
+            if (onCloseCallback) onCloseCallback();
+        }, 300);
     };
 }
 
@@ -98,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnExit) {
         btnExit.onclick = (e) => {
-            // Time Shield applied to Exit Button!
             if (!isLibraryOpen()) {
                 e.preventDefault();
                 showCenteredAlert('Library Closed', closedMessage, 'bi-clock-fill');

@@ -36,7 +36,11 @@ export function initAuth(deviceRole) {
         if (user) {
             if (!user.email.endsWith("@neu.edu.ph")) {
                 await signOut(auth);
-                showCenteredAlert('Invalid Email', 'Only @neu.edu.ph institutional emails are allowed to access this system.', 'bi-envelope-x-fill');
+                // Return to landing page on invalid email
+                showCenteredAlert('Invalid Email', 'Only @neu.edu.ph institutional emails are allowed to access this system.', 'bi-envelope-x-fill', () => {
+                    localStorage.removeItem('libraryDeviceRole');
+                    location.reload();
+                });
                 return;
             }
             handleManualRouting(user, deviceRole);
@@ -86,8 +90,11 @@ async function handleManualRouting(user, deviceRole) {
     } else {
         if (userData.isBlocked) { 
             await signOut(auth); 
-            UI.showScreen('login');
-            showCenteredAlert('Account Blocked', 'Your access to the library system has been restricted. Please speak with the head librarian.', 'bi-person-fill-slash');
+            // Return to landing page if blocked
+            showCenteredAlert('Account Blocked', 'Your access to the library system has been restricted. Please speak with the head librarian.', 'bi-person-fill-slash', () => {
+                localStorage.removeItem('libraryDeviceRole');
+                location.reload();
+            });
             return; 
         }
 
@@ -109,10 +116,15 @@ async function handleManualRouting(user, deviceRole) {
                 loadAdminDashboard();
             } else {
                 await signOut(auth); 
+                // Return to landing page if a student tries to access admin
                 showCenteredAlert(
                     'Access Denied', 
                     'Admin privileges are required to access this dashboard. If you are a student, please use the Entrance Terminal.',
-                    'bi-shield-lock-fill'
+                    'bi-shield-lock-fill',
+                    () => {
+                        localStorage.removeItem('libraryDeviceRole');
+                        location.reload();
+                    }
                 );
             }
         } 
