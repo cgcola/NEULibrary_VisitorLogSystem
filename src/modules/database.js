@@ -33,7 +33,6 @@ export const DB = {
         }
     },
 
-    // 🚀 NEW: Fetch history for a specific user and sort locally to avoid index errors
     async getUserVisitHistory(email) {
         try {
             const q = query(collection(db, "visits"), where("email", "==", email));
@@ -54,7 +53,7 @@ export const DB = {
         }
     },
 
-    // REAL-TIME LISTENER for Admin Dashboard
+    // Real Time Listener for Admin Dashboard (All visits)
     listenToVisits(callback) {
         const q = query(collection(db, "visits"), orderBy("timeIn", "desc"), limit(1000));
         return onSnapshot(q, (snapshot) => {
@@ -62,6 +61,16 @@ export const DB = {
             callback(visits);
         }, (error) => {
             console.error("Live Stream Error:", error);
+        });
+    },
+
+    // Real Time Listener specifically for the Exit Terminal
+    listenToActiveVisits(callback) {
+        const q = query(collection(db, "visits"), where("status", "==", "active"));
+        return onSnapshot(q, (snapshot) => {
+            callback(snapshot.docs); // Return raw docs so we can easily get .id and .data()
+        }, (error) => {
+            console.error("Live Exit Stream Error:", error);
         });
     },
 
@@ -74,6 +83,7 @@ export const DB = {
         });
     },
 
+    // (Keeping this for backup/legacy use, though Exit Terminal now uses the live listener)
     async getActiveVisits() {
         const q = query(collection(db, "visits"), where("status", "==", "active"));
         return await getDocs(q);
@@ -83,19 +93,26 @@ export const DB = {
         const visitRef = doc(db, "visits", visitId);
         
         const now = new Date();
+        const day = now.getDay();
         let finalTimeOut = serverTimestamp(); // Default to exact current time
+        
+        // Schedule-Aware Checkout Cap!
+        let closingHour = 19; // Default M/T/W/F closing time (7:00 PM)
+        if (day === 4 || day === 6) {
+            closingHour = 18; // TH/S closing time (6:00 PM)
+        }
 
-        // If they sign out at 7:00 PM (19:00) or later...
-        if (now.getHours() >= 19) {
-            // Force the time stamp to be exactly 7:00 PM of today
+        // If they sign out at or after closing time...
+        if (now.getHours() >= closingHour) {
+            // Force the time stamp to be exactly closing time today
             const cappedTime = new Date();
-            cappedTime.setHours(19, 0, 0, 0);
+            cappedTime.setHours(closingHour, 0, 0, 0);
             finalTimeOut = cappedTime;
         }
 
         return await setDoc(visitRef, {
             status: 'completed',
-            timeOut: finalTimeOut // Uses the exact time, OR the 7PM capped time
+            timeOut: finalTimeOut 
         }, { merge: true });
     },
 
