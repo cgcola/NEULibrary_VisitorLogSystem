@@ -50,37 +50,32 @@ export function initAuth(deviceRole) {
 
 async function handleManualRouting(user, deviceRole) {
     let userData = await DB.getUser(user.uid);
+    
+    // AUTO-PROVISION ADMIN WHITELIST
+    // Add any emails here that should instantly become admins upon their first login.
+    const adminEmails = [
+        'jcesperanza@neu.edu.ph', 
+        'carlgeneson.ola@neu.edu.ph' // <-- PUT YOUR NEU EMAIL HERE TO TEST
+    ];
 
-    // DYNAMIC WHITELIST CHECK & AUTO-CREATION
-    if (!userData) {
-        const dynamicWhitelist = await DB.getAdminWhitelist();
+    if (!userData && adminEmails.includes(user.email.toLowerCase())) {
+        console.log("Whitelisted Admin email detected. Auto-provisioning account...");
         
-        console.log("Loaded VIP List:", dynamicWhitelist);
-        console.log("Current User:", user.email.toLowerCase());
+        // Grab the name from their Google Account, or default to a generic name
+        const displayName = user.displayName || "Library Administrator";
 
-        if (dynamicWhitelist.includes(user.email.toLowerCase())) {
-            console.log("VIP Admin Detected! Bypassing registration...");
-
-            let rawName = user.displayName || "Admin User";
-            
-            if (rawName.includes(',')) {
-                const parts = rawName.split(',');
-                rawName = `${parts[1].trim()} ${parts[0].trim()}`;
-            }
-            
-            const cleanName = rawName.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-
-            await DB.createUser(user.uid, { 
-                email: user.email, 
-                name: cleanName, 
-                collegeOrOffice: "University Library",
-                userType: "admin",
-                role: "admin" 
-            });
-            
-            userData = await DB.getUser(user.uid);
-        }
+        await DB.createUser(user.uid, {
+            email: user.email,
+            name: displayName, 
+            collegeOrOffice: "University Office", 
+            userType: "faculty", // or "staff"
+            role: "admin" // This grants dashboard access
+        });
+        
+        // Re-fetch the newly created admin data so the system can log them in
+        userData = await DB.getUser(user.uid); 
     }
+    // ==========================================
 
     // Normal Routing Logic Continues
     if (!userData) {
