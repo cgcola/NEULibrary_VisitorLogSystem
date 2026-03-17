@@ -50,32 +50,39 @@ export function initAuth(deviceRole) {
 
 async function handleManualRouting(user, deviceRole) {
     let userData = await DB.getUser(user.uid);
-    
-    // AUTO-PROVISION ADMIN WHITELIST
-    // Add any emails here that should instantly become admins upon their first login.
-    const adminEmails = [
-        'jcesperanza@neu.edu.ph', 
-        'carlgeneson.ola@neu.edu.ph' // <-- PUT YOUR NEU EMAIL HERE TO TEST
-    ];
 
-    if (!userData && adminEmails.includes(user.email.toLowerCase())) {
-        console.log("Whitelisted Admin email detected. Auto-provisioning account...");
+    // DYNAMIC DATABASE WHITELIST CHECK
+    if (!userData) {
+        // Asks Firebase database for the list of emails
+        const dynamicWhitelist = await DB.getAdminWhitelist();
         
-        // Grab the name from their Google Account, or default to a generic name
-        const displayName = user.displayName || "Library Administrator";
+        console.log("Loaded VIP List from DB:", dynamicWhitelist);
+        console.log("Current User:", user.email.toLowerCase());
 
-        await DB.createUser(user.uid, {
-            email: user.email,
-            name: displayName, 
-            collegeOrOffice: "University Office", 
-            userType: "faculty", // or "staff"
-            role: "admin" // This grants dashboard access
-        });
-        
-        // Re-fetch the newly created admin data so the system can log them in
-        userData = await DB.getUser(user.uid); 
+        if (dynamicWhitelist.includes(user.email.toLowerCase())) {
+            console.log("VIP Admin Detected! Bypassing registration...");
+
+            // Format their name beautifully
+            let rawName = user.displayName || "Admin User";
+            if (rawName.includes(',')) {
+                const parts = rawName.split(',');
+                rawName = `${parts[1].trim()} ${parts[0].trim()}`;
+            }
+            const cleanName = rawName.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+
+            // Silently create their profile with Admin rights
+            await DB.createUser(user.uid, { 
+                email: user.email, 
+                name: cleanName, 
+                collegeOrOffice: "University Library",
+                userType: "admin",
+                role: "admin" 
+            });
+            
+            // Re-fetch the newly created admin data
+            userData = await DB.getUser(user.uid);
+        }
     }
-    // ==========================================
 
     // Normal Routing Logic Continues
     if (!userData) {
