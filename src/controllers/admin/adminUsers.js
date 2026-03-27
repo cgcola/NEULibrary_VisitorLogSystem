@@ -130,10 +130,12 @@ function renderUsersTable(users) {
             <td>${u.collegeOrOffice || 'N/A'}</td>
             <td>${statusBadge}</td>
             <td class="text-end">
-                <button class="btn btn-sm btn-outline-info px-2 me-1 btn-view-history" data-uid="${u.id}" data-email="${u.email}" title="View History">
-                    <i class="bi bi-clock-history"></i>
-                </button>
-                <button class="btn btn-sm ${btnClass} px-3 fw-bold btn-toggle-block" data-uid="${u.id}" data-blocked="${isBlocked}">${btnText}</button>
+                <div class="d-flex gap-2 justify-content-end flex-wrap">
+                    <button class="btn btn-sm btn-outline-info px-2 btn-view-history" data-uid="${u.id}" data-email="${u.email}" title="View History">
+                        <i class="bi bi-clock-history"></i>
+                    </button>
+                    <button class="btn btn-sm ${btnClass} px-3 fw-bold btn-toggle-block" data-uid="${u.id}" data-blocked="${isBlocked}">${btnText}</button>
+                </div>
             </td>`;
         
         // 2. Create the Hidden History Dropdown Row
